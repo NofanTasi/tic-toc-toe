@@ -87,51 +87,49 @@ export const D4_TRANSFORMS: ((i: number) => number)[] = [
 export interface CanonicalDefinition {
   classNumber: number;
   className: string;
-  canonicalBoardStr: string;
+  abstractBoardStr: string;
   safeLineIds: string[];
 }
 
 export const CANONICAL_CLASSES: CanonicalDefinition[] = [
   {
     classNumber: 1,
-    className: 'Canonical #1: OOXXXOOXX (Filled by X)',
-    canonicalBoardStr: 'OOXXXOOXX',
+    className: 'Class #1 (B B A / A A B / B A A)',
+    abstractBoardStr: 'BBAAABBAA',
     safeLineIds: ['col-2', 'diag-main'],
   },
   {
     classNumber: 2,
-    className: 'Canonical #2: OXOXOXXOX (Filled by X)',
-    canonicalBoardStr: 'OXOXOXXOX',
+    className: 'Class #2 (B A B / A B A / A B A)',
+    abstractBoardStr: 'BABABAABA',
     safeLineIds: ['row-2', 'row-3', 'col-1', 'col-3'],
   },
   {
     classNumber: 3,
-    className: 'Canonical #3: OXXXOOXOX (Filled by X)',
-    canonicalBoardStr: 'OXXXOOXOX',
+    className: 'Class #3 (B A A / A B B / A B A)',
+    abstractBoardStr: 'BAAABBABA',
     safeLineIds: ['row-3', 'col-3', 'diag-anti'],
-  },
-  {
-    classNumber: 4,
-    className: 'Canonical #4: OOXXOOOXX (Filled by O)',
-    canonicalBoardStr: 'OOXXOOOXX',
-    safeLineIds: ['col-2', 'diag-main'],
-  },
-  {
-    classNumber: 5,
-    className: 'Canonical #5: OOXXXOOOX (Filled by O)',
-    canonicalBoardStr: 'OOXXXOOOX',
-    safeLineIds: ['row-1', 'row-3', 'col-1', 'col-2'],
-  },
-  {
-    classNumber: 6,
-    className: 'Canonical #6: OOXXXOOXO (Filled by O)',
-    canonicalBoardStr: 'OOXXXOOXO',
-    safeLineIds: ['row-3', 'col-1', 'diag-main'],
   },
 ];
 
 export function boardToString(board: BoardState): string {
   return board.map((c) => (c === null ? '.' : c)).join('');
+}
+
+/**
+  Converts a board to an abstract string using 'A' for the 5-piece player and 'B' for the 4-piece player.
+  This abstracts away player symbol asymmetry (X vs O).
+*/
+export function boardToAbstractString(board: BoardState): string {
+  const xCount = board.filter((c) => c === 'X').length;
+  const oCount = board.filter((c) => c === 'O').length;
+  const aSymbol: Player = xCount >= oCount ? 'X' : 'O';
+  return board
+    .map((c) => {
+      if (c === null) return '.';
+      return c === aSymbol ? 'A' : 'B';
+    })
+    .join('');
 }
 
 export function transformBoard(board: BoardState, transformFn: (i: number) => number): BoardState {
@@ -143,7 +141,7 @@ export function transformBoard(board: BoardState, transformFn: (i: number) => nu
 }
 
 /**
-  Matches a full board against the 6 canonical classes using D4 symmetries.
+  Matches a full board against the canonical abstract classes using D4 symmetries and A/B symbol abstraction.
   Returns details on which canonical class it is, and maps safe removals back to current board lines.
 */
 export function matchCanonicalClass(board: BoardState): CanonicalMatch | null {
@@ -153,9 +151,9 @@ export function matchCanonicalClass(board: BoardState): CanonicalMatch | null {
     for (let t = 0; t < 8; t++) {
       const transformFn = D4_TRANSFORMS[t];
       const transformed = transformBoard(board, transformFn);
-      const transformedStr = boardToString(transformed);
+      const transformedAbstractStr = boardToAbstractString(transformed);
 
-      if (transformedStr === canon.canonicalBoardStr) {
+      if (transformedAbstractStr === canon.abstractBoardStr) {
         // Map canonical safe line IDs back to original board lines
         const safeOnOriginalBoard: string[] = [];
 
@@ -175,7 +173,7 @@ export function matchCanonicalClass(board: BoardState): CanonicalMatch | null {
         return {
           classNumber: canon.classNumber,
           className: canon.className,
-          canonicalBoard: canon.canonicalBoardStr,
+          canonicalBoard: canon.abstractBoardStr,
           transformIndex: t,
           safeLineIds: safeOnOriginalBoard,
         };

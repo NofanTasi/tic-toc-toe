@@ -1,6 +1,5 @@
 import React from 'react';
 import { CANONICAL_CLASSES } from '../utils/tictactoe';
-import { X, BookOpen } from 'lucide-react';
 
 interface RulesModalProps {
   isOpen: boolean;
@@ -11,57 +10,50 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-      <div className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl max-w-2xl w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 font-mono text-black dark:text-white">
+      <div className="bg-white dark:bg-black border-2 border-black dark:border-white max-w-xl w-full max-h-[90vh] overflow-hidden flex flex-col p-4 shadow-none">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-stone-200 dark:border-stone-800">
-          <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
-            <h2 className="text-lg font-bold text-stone-900 dark:text-stone-100">
-              Tic Toc Toe — Rules & Symmetry Strategy
-            </h2>
-          </div>
+        <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2 mb-3">
+          <h2 className="text-sm font-bold uppercase tracking-wider">
+            === RULES & CANONICAL SYMMETRY MATRIX ===
+          </h2>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
+            className="px-2 py-0.5 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-bold text-xs"
           >
-            <X className="w-5 h-5" />
+            [ X ]
           </button>
         </div>
 
-        {/* Scrollable Content */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-6 text-sm text-stone-700 dark:text-stone-300">
-          {/* Rules Section */}
-          <section className="space-y-2">
-            <h3 className="font-bold text-stone-900 dark:text-stone-100 text-base">
-              Game Rules
-            </h3>
-            <ul className="list-disc pl-5 space-y-1.5 leading-relaxed">
+        {/* Body */}
+        <div className="overflow-y-auto space-y-4 text-xs pr-1">
+          {/* Rules */}
+          <div className="border border-black dark:border-white p-2">
+            <div className="font-bold border-b border-black dark:border-white pb-1 mb-2">
+              GAME MECHANICS & SYMMETRY ABSTRACTION
+            </div>
+            <ul className="list-disc pl-4 space-y-1.5 leading-relaxed">
               <li>
-                <strong>Classical Objective:</strong> Align 3 of your own symbols (XXX or OOO) horizontally, vertically, or diagonally to win.
+                <strong>Line Removal Rule:</strong> At any turn, a player can remove 3 symbols in a line (row, column, or diagonal that is fully filled).
               </li>
               <li>
-                <strong>Line Removal Rule:</strong> At any time during a turn, a player may choose to <em>remove 3 symbols in a line</em> (row, column, or diagonal that is fully filled) instead of placing a symbol.
+                <strong>Infinite Catch-22:</strong> On a full 9-cell draw board, removing a canonical safe line returns the board to a 6-piece classical draw state, continuing play indefinitely.
               </li>
               <li>
-                <strong>Infinite Play Mechanics:</strong> When a full 9-piece board draw is reached, removing a line of 3 symbols leaves 6 pieces on the board in a classical draw position, allowing the game to continue indefinitely without a stalemate!
+                <strong>A/B Symbol Abstraction:</strong> The canonical matrix abstracts both spatial D4 grid symmetries (rotations/reflections) and player symbol symmetry. <strong>A</strong> denotes the 5-piece player and <strong>B</strong> denotes the 4-piece player.
               </li>
             </ul>
-          </section>
+          </div>
 
-          {/* Canonical Symmetry Classes Matrix */}
-          <section className="space-y-3">
-            <h3 className="font-bold text-stone-900 dark:text-stone-100 text-base flex items-center justify-between">
-              <span>Full Draw Board Canonical Classes</span>
-              <span className="text-xs font-normal text-stone-500">
-                (Up to D4 Rotations & Reflections)
-              </span>
-            </h3>
+          {/* Canonical Classes */}
+          <div className="space-y-2">
+            <div className="font-bold text-xs uppercase tracking-wider">
+              [ CANONICAL DRAW CLASSES (3 ABSTRACT CLASSES) ]
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {CANONICAL_CLASSES.map((canon) => {
-                // Format string to 3x3 grid
-                const s = canon.canonicalBoardStr;
+                const s = canon.abstractBoardStr;
                 const row1 = [s[0], s[1], s[2]];
                 const row2 = [s[3], s[4], s[5]];
                 const row3 = [s[6], s[7], s[8]];
@@ -69,56 +61,39 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 return (
                   <div
                     key={canon.classNumber}
-                    className="p-3 bg-stone-50 dark:bg-stone-850 rounded-xl border border-stone-200 dark:border-stone-800 space-y-2"
+                    className="border border-black dark:border-white p-2 space-y-2 text-center"
                   >
-                    <div className="font-bold text-xs text-indigo-600 dark:text-indigo-400">
+                    <div className="font-bold border-b border-black dark:border-white pb-1 text-[11px]">
                       {canon.className}
                     </div>
 
-                    <div className="flex items-center gap-4">
-                      {/* Grid preview */}
-                      <div className="grid grid-cols-3 gap-1 bg-stone-200 dark:bg-stone-700 p-1 rounded font-mono text-xs font-black text-center w-20">
-                        {[...row1, ...row2, ...row3].map((char, i) => (
-                          <div
-                            key={i}
-                            className="bg-white dark:bg-stone-800 py-0.5 rounded text-stone-800 dark:text-stone-200"
-                          >
-                            {char}
-                          </div>
-                        ))}
-                      </div>
+                    {/* ASCII Grid Preview */}
+                    <div className="font-mono text-xs font-bold leading-tight my-2">
+                      <div>{row1.join(' | ')}</div>
+                      <div>---------</div>
+                      <div>{row2.join(' | ')}</div>
+                      <div>---------</div>
+                      <div>{row3.join(' | ')}</div>
+                    </div>
 
-                      {/* Safe removals */}
-                      <div className="flex-1 text-xs">
-                        <span className="font-semibold text-stone-600 dark:text-stone-400 block mb-1">
-                          Safe Removals:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {canon.safeLineIds.map((lineId) => (
-                            <span
-                              key={lineId}
-                              className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300"
-                            >
-                              {lineId}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
+                    <div className="text-[10px] border-t border-black dark:border-white pt-1">
+                      <span className="font-bold">Safe Removals:</span>
+                      <div>{canon.safeLineIds.join(', ')}</div>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </section>
+          </div>
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-stone-200 dark:border-stone-800 flex justify-end">
+        <div className="mt-4 pt-2 border-t-2 border-black dark:border-white flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white dark:bg-stone-100 dark:hover:bg-white dark:text-stone-900 font-semibold rounded-xl text-xs transition-colors"
+            className="px-4 py-1 border border-black dark:border-white font-bold text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
           >
-            Got it, Let's Play
+            [ CLOSE ]
           </button>
         </div>
       </div>

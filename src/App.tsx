@@ -202,8 +202,8 @@ export default function App() {
       (mode === 'pva_o' && currentTurn === 'O'));
 
   return (
-    <div className="min-h-screen bg-stone-100 dark:bg-stone-950 text-stone-900 dark:text-stone-100 font-sans py-6 sm:py-8 px-4 transition-colors">
-      <div className="max-w-4xl mx-auto flex flex-col items-center">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white font-mono py-6 px-4">
+      <div className="max-w-xl mx-auto flex flex-col items-center">
         {/* Header */}
         <Header
           mode={mode}
