@@ -14,6 +14,8 @@ interface StrategyInspectorProps {
   onSetAiSpeed: (speed: number) => void;
   onStepAi: () => void;
   isAiPlaying: boolean;
+  isAiPaused: boolean;
+  onToggleAiPause: () => void;
 }
 
 export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
@@ -28,10 +30,13 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
   onSetAiSpeed,
   onStepAi,
   isAiPlaying,
+  isAiPaused,
+  onToggleAiPause,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const pieceCount = board.filter((c) => c !== null).length;
+  const cycleCount = history.filter((item) => item.action === 'clear').length;
 
   return (
     <div className="w-full max-w-4xl mx-auto mt-6 px-4">
@@ -41,7 +46,7 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
           onClick={() => setIsExpanded(!isExpanded)}
           className="flex items-center justify-between px-4 py-3 bg-stone-50 dark:bg-stone-850 cursor-pointer select-none border-b border-stone-100 dark:border-stone-800"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Shield className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             <h3 className="text-sm font-bold text-stone-900 dark:text-stone-100">
               Tic Toc Toe Strategy & Analysis Engine
@@ -49,6 +54,11 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
             <span className="text-xs px-2 py-0.5 rounded-full bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 font-medium">
               {pieceCount}/9 Pieces
             </span>
+            {cycleCount > 0 && (
+              <span className="text-xs px-2 py-0.5 rounded-full bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300 font-bold border border-purple-300 dark:border-purple-800 animate-pulse">
+                Catch-22 Cycles: {cycleCount}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-3">
@@ -116,42 +126,61 @@ export const StrategyInspector: React.FC<StrategyInspectorProps> = ({
                 </div>
               ) : (
                 <div className="text-xs text-stone-500 dark:text-stone-400 leading-relaxed">
-                  In Tic Toc Toe, classical Tic Tac Toe strategy leads to infinite play. When a full board draw is reached, removing a safe line of 3 symbols returns the board to a 6-piece classical draw state!
+                  In Tic Toc Toe, classical Tic Tac Toe minimax strategy leads to an <strong>infinite Catch-22 play loop</strong>. When a full board draw is reached, removing a safe line of 3 symbols returns the board to a 6-piece classical draw state!
                 </div>
               )}
 
-              {/* AI vs AI Controls */}
+              {/* AI vs AI Controls & Infinite Play Banner */}
               {isAiVsAi && (
-                <div className="mt-2 pt-2 border-t border-stone-200 dark:border-stone-700 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-stone-700 dark:text-stone-300">
-                      AI Speed:
+                <div className="mt-2 pt-2 border-t border-stone-200 dark:border-stone-700 flex flex-col gap-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-purple-700 dark:text-purple-300 flex items-center gap-1">
+                      <span>♾️ Catch-22 AI Loop</span>
+                      <span className="text-[10px] font-normal opacity-80">(Minimax Active)</span>
                     </span>
-                    {[
-                      { label: 'Slow', ms: 1200 },
-                      { label: 'Med', ms: 600 },
-                      { label: 'Fast', ms: 200 },
-                    ].map((s) => (
-                      <button
-                        key={s.label}
-                        onClick={() => onSetAiSpeed(s.ms)}
-                        className={`px-2 py-1 text-[10px] font-bold rounded ${
-                          aiSpeed === s.ms
-                            ? 'bg-purple-600 text-white'
-                            : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
+                    <button
+                      onClick={onToggleAiPause}
+                      className={`px-2 py-0.5 text-xs font-bold rounded ${
+                        isAiPaused
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800'
+                      }`}
+                    >
+                      {isAiPaused ? 'Resume AI' : 'Pause AI'}
+                    </button>
                   </div>
 
-                  <button
-                    onClick={onStepAi}
-                    className="px-2.5 py-1 text-xs font-bold rounded bg-purple-100 hover:bg-purple-200 dark:bg-purple-950 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
-                  >
-                    Step AI Move
-                  </button>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium text-stone-600 dark:text-stone-400">
+                        Speed:
+                      </span>
+                      {[
+                        { label: 'Slow', ms: 1000 },
+                        { label: 'Med', ms: 400 },
+                        { label: 'Fast', ms: 100 },
+                      ].map((s) => (
+                        <button
+                          key={s.label}
+                          onClick={() => onSetAiSpeed(s.ms)}
+                          className={`px-2 py-0.5 text-[10px] font-bold rounded ${
+                            aiSpeed === s.ms
+                              ? 'bg-purple-600 text-white'
+                              : 'bg-stone-200 dark:bg-stone-700 text-stone-700 dark:text-stone-300'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    <button
+                      onClick={onStepAi}
+                      className="px-2.5 py-1 text-xs font-bold rounded bg-purple-100 hover:bg-purple-200 dark:bg-purple-950 dark:hover:bg-purple-900 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-800"
+                    >
+                      Step 1 Move
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

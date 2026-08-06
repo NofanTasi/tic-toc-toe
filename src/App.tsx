@@ -26,8 +26,9 @@ export default function App() {
   const [mode, setMode] = useState<GameMode>('pva_x');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
-  const [aiSpeed, setAiSpeed] = useState<number>(600);
+  const [aiSpeed, setAiSpeed] = useState<number>(400);
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
+  const [isAiPaused, setIsAiPaused] = useState<boolean>(false);
 
   const winInfo = checkWin(board);
   const winner = winInfo.winner;
@@ -177,7 +178,7 @@ export default function App() {
 
   // AI Auto-Triggering Effect
   useEffect(() => {
-    if (winner !== null) return;
+    if (winner !== null || isAiPaused) return;
 
     let isAiTurn = false;
     if (mode === 'pva_x' && currentTurn === 'O') isAiTurn = true;
@@ -190,7 +191,7 @@ export default function App() {
       }, aiSpeed);
       return () => clearTimeout(timer);
     }
-  }, [board, currentTurn, mode, winner, aiSpeed, isAiThinking, executeAiTurn]);
+  }, [board, currentTurn, mode, winner, aiSpeed, isAiThinking, isAiPaused, executeAiTurn]);
 
   // Disable controls if AI is taking turn or game over
   const isHumanTurn =
@@ -240,6 +241,8 @@ export default function App() {
           onSetAiSpeed={setAiSpeed}
           onStepAi={executeAiTurn}
           isAiPlaying={isAiThinking}
+          isAiPaused={isAiPaused}
+          onToggleAiPause={() => setIsAiPaused((prev) => !prev)}
         />
 
         {/* Rules & Symmetry Strategy Modal */}
