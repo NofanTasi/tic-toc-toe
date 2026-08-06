@@ -16,6 +16,7 @@ interface DebugPanelProps {
   winner: Player | null;
   filledLines: Line[];
   isBoardFull: boolean;
+  gamesPlayed: number;
   aiSpeed: number;
   onSetAiSpeed: (speed: number) => void;
   isAiPaused: boolean;
@@ -34,6 +35,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
   winner,
   filledLines,
   isBoardFull,
+  gamesPlayed,
   aiSpeed,
   onSetAiSpeed,
   isAiPaused,
@@ -123,6 +125,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="font-bold border-b border-black dark:border-white pb-1">
             BOARD STATE
           </div>
+          <div>Games Played: <span className="font-bold">{gamesPlayed}</span></div>
           <div>Turn: <span className="font-bold">{currentTurn}</span></div>
           <div>Mode: <span className="font-bold uppercase">{mode}</span></div>
           <div>Pieces: X={countX} | O={countO} (Total {countX + countO}/9)</div>

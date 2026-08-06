@@ -28,6 +28,25 @@ export default function App() {
   const [aiSpeed, setAiSpeed] = useState<number>(400);
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
   const [isAiPaused, setIsAiPaused] = useState<boolean>(false);
+  const [gameTracked, setGameTracked] = useState<boolean>(false);
+  const [gamesPlayed, setGamesPlayed] = useState<number>(() => {
+    const saved = localStorage.getItem('tictactoe_games_played');
+    return saved ? parseInt(saved, 10) || 0 : 0;
+  });
+
+  const recordGameStart = useCallback(() => {
+    setGameTracked((alreadyTracked) => {
+      if (!alreadyTracked) {
+        setGamesPlayed((prev) => {
+          const next = prev + 1;
+          localStorage.setItem('tictactoe_games_played', String(next));
+          return next;
+        });
+        return true;
+      }
+      return alreadyTracked;
+    });
+  }, []);
 
   const winInfo = checkWin(board);
   const winner = winInfo.winner;
@@ -42,6 +61,7 @@ export default function App() {
     setCurrentTurn('X');
     setHistory([]);
     setIsAiThinking(false);
+    setGameTracked(false);
   }, []);
 
   // Mode Selection
@@ -54,6 +74,7 @@ export default function App() {
   const handleCellClick = useCallback(
     (index: number) => {
       if (board[index] !== null || winner !== null || isAiThinking) return;
+      recordGameStart();
 
       const boardBefore = [...board];
       const newBoard = [...board];
@@ -77,13 +98,14 @@ export default function App() {
         setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
       }
     },
-    [board, currentTurn, winner, isAiThinking]
+    [board, currentTurn, winner, isAiThinking, recordGameStart]
   );
 
   // Clear Line Action
   const handleClearLine = useCallback(
     (line: Line) => {
       if (winner !== null || isAiThinking) return;
+      recordGameStart();
 
       const boardBefore = [...board];
       const newBoard = [...board];
@@ -105,7 +127,7 @@ export default function App() {
       setHistory((prev) => [...prev, newHistoryItem]);
       setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
     },
-    [board, currentTurn, winner, isAiThinking]
+    [board, currentTurn, winner, isAiThinking, recordGameStart]
   );
 
   // Undo Last Move
@@ -121,6 +143,7 @@ export default function App() {
   // AI Step Move Logic
   const executeAiTurn = useCallback(() => {
     if (winner !== null) return;
+    recordGameStart();
 
     setIsAiThinking(true);
     const move = getBestAIMove(board, currentTurn);
@@ -170,7 +193,7 @@ export default function App() {
     }
 
     setIsAiThinking(false);
-  }, [board, currentTurn, winner]);
+  }, [board, currentTurn, winner, recordGameStart]);
 
   // AI Auto-Triggering Effect
   useEffect(() => {
@@ -235,6 +258,7 @@ export default function App() {
             winner={winner}
             filledLines={filledLines}
             isBoardFull={boardIsFull}
+            gamesPlayed={gamesPlayed}
             aiSpeed={aiSpeed}
             onSetAiSpeed={setAiSpeed}
             isAiPaused={isAiPaused}
