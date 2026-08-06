@@ -3,12 +3,21 @@ import { GameMode } from '../types';
 
 interface HeaderProps {
   mode: GameMode;
+  isDebug: boolean;
   onSelectMode: (mode: GameMode) => void;
   onOpenRules: () => void;
+  onToggleDebug: () => void;
   onReset: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ mode, onSelectMode, onOpenRules, onReset }) => {
+export const Header: React.FC<HeaderProps> = ({
+  mode,
+  isDebug,
+  onSelectMode,
+  onOpenRules,
+  onToggleDebug,
+  onReset,
+}) => {
   return (
     <header className="w-full max-w-xl mx-auto mb-6 font-mono text-black dark:text-white">
       {/* Title & Top Action Bar */}
@@ -17,22 +26,30 @@ export const Header: React.FC<HeaderProps> = ({ mode, onSelectMode, onOpenRules,
           <h1 className="text-2xl font-bold tracking-widest uppercase">
             TIC TOC TOE
           </h1>
-          <p className="text-xs opacity-75 mt-0.5">
-            Classical Minimax + Infinite Line Removal
-          </p>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={onOpenRules}
-            className="px-3 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+            className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="rules-btn"
           >
-            [ RULES & SYMMETRY ]
+            [ extra RULES ]
+          </button>
+          <button
+            onClick={onToggleDebug}
+            className={`px-2.5 py-1 border border-black dark:border-white text-xs font-bold ${
+              isDebug
+                ? 'bg-black text-white dark:bg-white dark:text-black'
+                : 'hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black'
+            }`}
+            id="debug-btn"
+          >
+            {isDebug ? '[ DEBUG ]' : '[ no DEBUG ]'}
           </button>
           <button
             onClick={onReset}
-            className="px-3 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+            className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="reset-game-btn"
           >
             [ RESET ]

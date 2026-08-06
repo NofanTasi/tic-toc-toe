@@ -10,15 +10,13 @@ import {
   checkWin,
   getBestAIMove,
   getFilledLines,
-  getSafeLineRemovals,
   INITIAL_BOARD,
   isBoardFull,
-  matchCanonicalClass,
 } from './utils/tictactoe';
 import { Header } from './components/Header';
 import { Board } from './components/Board';
-import { StrategyInspector } from './components/StrategyInspector';
 import { RulesModal } from './components/RulesModal';
+import { DebugPanel } from './components/DebugPanel';
 
 export default function App() {
   const [board, setBoard] = useState<BoardState>(INITIAL_BOARD);
@@ -26,6 +24,7 @@ export default function App() {
   const [mode, setMode] = useState<GameMode>('pva_x');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
+  const [isDebug, setIsDebug] = useState<boolean>(false);
   const [aiSpeed, setAiSpeed] = useState<number>(400);
   const [isAiThinking, setIsAiThinking] = useState<boolean>(false);
   const [isAiPaused, setIsAiPaused] = useState<boolean>(false);
@@ -35,9 +34,6 @@ export default function App() {
   const winningLine = winInfo.winningLine;
 
   const filledLines = getFilledLines(board);
-  const canonicalMatch = matchCanonicalClass(board);
-  const safeLines = getSafeLineRemovals(board);
-  const safeLineIds = safeLines.map((l) => l.id);
   const boardIsFull = isBoardFull(board);
 
   // Reset Game
@@ -207,8 +203,10 @@ export default function App() {
         {/* Header */}
         <Header
           mode={mode}
+          isDebug={isDebug}
           onSelectMode={handleSelectMode}
           onOpenRules={() => setIsRulesOpen(true)}
+          onToggleDebug={() => setIsDebug((prev) => !prev)}
           onReset={handleReset}
         />
 
@@ -220,7 +218,6 @@ export default function App() {
             winningLine={winningLine}
             winner={winner}
             filledLines={filledLines}
-            safeLineIds={safeLineIds}
             isBoardFull={boardIsFull}
             onCellClick={handleCellClick}
             onClearLine={handleClearLine}
@@ -228,24 +225,28 @@ export default function App() {
           />
         </main>
 
-        {/* Strategy Inspector */}
-        <StrategyInspector
-          board={board}
-          canonicalMatch={canonicalMatch}
-          history={history}
-          onUndo={handleUndo}
-          canUndo={history.length > 0 && !isAiThinking}
-          onOpenReferenceModal={() => setIsRulesOpen(true)}
-          isAiVsAi={mode === 'ava'}
-          aiSpeed={aiSpeed}
-          onSetAiSpeed={setAiSpeed}
-          onStepAi={executeAiTurn}
-          isAiPlaying={isAiThinking}
-          isAiPaused={isAiPaused}
-          onToggleAiPause={() => setIsAiPaused((prev) => !prev)}
-        />
+        {/* Debug Panel */}
+        {isDebug && (
+          <DebugPanel
+            board={board}
+            currentTurn={currentTurn}
+            mode={mode}
+            history={history}
+            winner={winner}
+            filledLines={filledLines}
+            isBoardFull={boardIsFull}
+            aiSpeed={aiSpeed}
+            onSetAiSpeed={setAiSpeed}
+            isAiPaused={isAiPaused}
+            onToggleAiPause={() => setIsAiPaused((prev) => !prev)}
+            onStepAi={executeAiTurn}
+            onUndo={handleUndo}
+            canUndo={history.length > 0 && !isAiThinking}
+            isAiThinking={isAiThinking}
+          />
+        )}
 
-        {/* Rules & Symmetry Strategy Modal */}
+        {/* Rules Modal */}
         <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
       </div>
     </div>
