@@ -342,17 +342,11 @@ export function getBestAIMove(
     // Find maximum minimax score (10 for win, 0 for draw, -10 for loss)
     const maxScore = Math.max(...candidates.map((c) => c.score));
 
-    // Filter to candidates with top minimax score
+    // Filter to candidates with top minimax score (guarantees 100% optimal play)
     const topScoreCandidates = candidates.filter((c) => c.score === maxScore);
 
-    // Find highest positional rank among top-score candidates
-    const maxPosRank = Math.max(...topScoreCandidates.map((c) => c.posRank));
-
-    // Filter to candidates with both top score AND top positional rank
-    const bestCandidates = topScoreCandidates.filter((c) => c.posRank === maxPosRank);
-
-    // Pick randomly among best candidates (e.g. between 4 corners)
-    const chosen = bestCandidates[Math.floor(Math.random() * bestCandidates.length)];
+    // Pick randomly among all top-scoring optimal candidates to explore diverse game trajectories
+    const chosen = topScoreCandidates[Math.floor(Math.random() * topScoreCandidates.length)];
 
     return { action: 'place', index: chosen.index };
   }
