@@ -188,23 +188,89 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
         )}
       </div>
 
-      {/* Move History Stack */}
-      <div className="border border-black dark:border-white p-2 space-y-1.5">
-        <div className="font-bold border-b border-black dark:border-white pb-1 flex justify-between">
-          <span>MOVE HISTORY STACK</span>
-          <span>{history.length} MOVES</span>
+      {/* Move History Stack & Export Log */}
+      <div className="border border-black dark:border-white p-2 space-y-2">
+        <div className="font-bold border-b border-black dark:border-white pb-1 flex justify-between items-center">
+          <span>MOVE HISTORY STACK ({history.length} MOVES)</span>
+          <div className="flex gap-2 text-[10px]">
+            <button
+              onClick={() => {
+                const logData = JSON.stringify(
+                  {
+                    timestamp: new Date().toISOString(),
+                    mode,
+                    gamesPlayed,
+                    winner,
+                    finalBoard: boardToString(board),
+                    history: history.map((h, i) => ({
+                      moveNum: i + 1,
+                      turn: h.turn,
+                      action: h.action,
+                      cellIndex: h.cellIndex,
+                      lineCleared: h.lineCleared?.name,
+                      boardBefore: boardToString(h.boardBefore),
+                      boardAfter: boardToString(h.boardAfter),
+                    })),
+                  },
+                  null,
+                  2
+                );
+                navigator.clipboard.writeText(logData);
+                alert('Game log JSON copied to clipboard!');
+              }}
+              className="px-2 py-0.5 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+              id="copy-log-btn"
+            >
+              [ COPY LOG ]
+            </button>
+            <button
+              onClick={() => {
+                const logData = JSON.stringify(
+                  {
+                    timestamp: new Date().toISOString(),
+                    mode,
+                    gamesPlayed,
+                    winner,
+                    finalBoard: boardToString(board),
+                    history: history.map((h, i) => ({
+                      moveNum: i + 1,
+                      turn: h.turn,
+                      action: h.action,
+                      cellIndex: h.cellIndex,
+                      lineCleared: h.lineCleared?.name,
+                      boardBefore: boardToString(h.boardBefore),
+                      boardAfter: boardToString(h.boardAfter),
+                    })),
+                  },
+                  null,
+                  2
+                );
+                const blob = new Blob([logData], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tictactoe_log_${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="px-2 py-0.5 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
+              id="download-log-btn"
+            >
+              [ DOWNLOAD LOG ]
+            </button>
+          </div>
         </div>
         {history.length === 0 ? (
           <div className="opacity-60 italic">No moves recorded yet.</div>
         ) : (
-          <div className="max-h-28 overflow-y-auto space-y-1 text-[11px] pr-1">
+          <div className="max-h-36 overflow-y-auto space-y-1 text-[11px] pr-1">
             {history
               .slice()
               .reverse()
               .map((item, idx) => (
                 <div
                   key={item.id}
-                  className="flex justify-between border-b border-dotted border-black/30 dark:border-white/30 pb-0.5"
+                  className="flex justify-between items-center border-b border-dotted border-black/30 dark:border-white/30 pb-0.5"
                 >
                   <span>
                     #{history.length - idx} [{item.turn}] {item.action.toUpperCase()}
@@ -212,7 +278,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                       ? ` @ Cell #${item.cellIndex}`
                       : ` Line: ${item.lineCleared?.name}`}
                   </span>
-                  <span className="opacity-60">
+                  <span className="font-mono bg-black/5 dark:bg-white/10 px-1 rounded">
                     {boardToString(item.boardAfter)}
                   </span>
                 </div>
