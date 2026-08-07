@@ -34,7 +34,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="rules-btn"
           >
-            [ extra RULES ]
+            Rules
           </button>
           <button
             onClick={onToggleDebug}
@@ -45,14 +45,14 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
             id="debug-btn"
           >
-            {isDebug ? '[ DEBUG ]' : '[ no DEBUG ]'}
+            Debug
           </button>
           <button
             onClick={onReset}
             className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="reset-game-btn"
           >
-            [ RESET ]
+            Reset
           </button>
         </div>
       </div>
@@ -75,10 +75,11 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
             id={`mode-${item.id}-btn`}
           >
-            [ {item.label} ]
+            {item.label}
           </button>
         ))}
       </div>
     </header>
   );
 };
+
