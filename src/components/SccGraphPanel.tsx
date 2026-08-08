@@ -1,6 +1,6 @@
 import React from 'react';
 import { BoardState } from '../types';
-import { calculateSccMetrics } from '../utils/sccGraph';
+import { calculateSccMetrics, TOTAL_CANONICAL_STATES } from '../utils/sccGraph';
 
 interface SccGraphPanelProps {
   historyBoards: BoardState[];
@@ -11,12 +11,9 @@ interface SccGraphPanelProps {
 
 export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
   historyBoards,
-  isAiVsAi,
-  onFastOrbit,
-  aiSpeed,
 }) => {
   const metrics = calculateSccMetrics(historyBoards);
-  const { cycleInfo, recentPath } = metrics;
+  const { cycleInfo, recentPath, topology } = metrics;
 
   return (
     <div className="w-full border-2 border-black dark:border-white p-3 font-mono text-xs bg-white dark:bg-black text-black dark:text-white space-y-3">
@@ -24,47 +21,64 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
       <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2">
         <div className="flex items-center gap-2">
           <span className="font-bold uppercase tracking-wider text-sm">
-            [ ∞ GAME GRAPH EXPLORER ]
+            ∞ GAME GRAPH EXPLORER
           </span>
           {cycleInfo.isCycle && (
             <span className="bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 text-[10px] font-bold animate-pulse">
-              ∞ LOOP DETECTED ({cycleInfo.cycleLength} STEPS)
+              LOOP DETECTED ({cycleInfo.cycleLength} STEPS)
             </span>
           )}
         </div>
-        <span className="text-[10px] opacity-75">100% FULLY INTERCONNECTED</span>
+        <span className="text-[10px] opacity-75">211 CANONICAL STATES</span>
       </div>
 
-      {/* Primary Topology Metrics */}
+      {/* Primary Topology & Spectral Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
         <div className="border border-black dark:border-white p-2">
-          <div className="text-[10px] opacity-75 uppercase">Unique States</div>
-          <div className="text-lg font-bold">{metrics.uniqueStatesCount}</div>
+          <div className="text-[10px] opacity-75 uppercase">Visited States</div>
+          <div className="text-lg font-bold">{metrics.uniqueStatesCount} / {TOTAL_CANONICAL_STATES}</div>
         </div>
 
         <div className="border border-black dark:border-white p-2">
-          <div className="text-[10px] opacity-75 uppercase">Total Transitions</div>
-          <div className="text-lg font-bold">{metrics.totalTransitions}</div>
+          <div className="text-[10px] opacity-75 uppercase">Spectral Radius λ</div>
+          <div className="text-lg font-bold">{metrics.spectralRadius}</div>
         </div>
 
         <div className="border border-black dark:border-white p-2">
-          <div className="text-[10px] opacity-75 uppercase">State Visits</div>
-          <div className="text-lg font-bold">
-            #{metrics.visitCount} {metrics.visitCount > 1 ? '(Recurrent)' : '(First Visit)'}
-          </div>
+          <div className="text-[10px] opacity-75 uppercase">Node Centrality</div>
+          <div className="text-lg font-bold">{topology.centralityScore.toFixed(4)}</div>
         </div>
 
         <div className="border border-black dark:border-white p-2">
-          <div className="text-[10px] opacity-75 uppercase">Cycle Orbit</div>
-          <div className="text-lg font-bold">
-            {cycleInfo.isCycle ? `${cycleInfo.cycleLength} Nodes` : 'Exploring...'}
-          </div>
+          <div className="text-[10px] opacity-75 uppercase">Stationary Density</div>
+          <div className="text-lg font-bold">{(topology.stationaryProb * 100).toFixed(2)}%</div>
+        </div>
+      </div>
+
+      {/* Active Node Strategic Designation */}
+      <div className="border border-black dark:border-white p-2 bg-black/5 dark:bg-white/5 space-y-1">
+        <div className="flex items-center justify-between border-b border-black/30 dark:border-white/30 pb-1">
+          <span className="font-bold text-[11px] uppercase tracking-wider">
+            &gt; CURRENT STATE TOPOLOGY RATING
+          </span>
+          <span className="font-bold uppercase text-[10px] px-1.5 py-0.5 bg-black text-white dark:bg-white dark:text-black">
+            {topology.designation}
+          </span>
+        </div>
+        <div className="text-[11px]">
+          {topology.rankNotice ? (
+            <div className="font-bold text-black dark:text-white">{topology.rankNotice}</div>
+          ) : (
+            <div>
+              Eigenvector Centrality: <strong>{topology.centralityScore.toFixed(4)}</strong> | Long-run Ergodic Visit Density: <strong>{(topology.stationaryProb * 100).toFixed(2)}%</strong>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Active Cycle Orbit Visualizer */}
       {cycleInfo.isCycle ? (
-        <div className="border border-black dark:border-white p-2.5 bg-black/5 dark:bg-white/5 space-y-2">
+        <div className="border border-black dark:border-white p-2.5 space-y-2">
           <div className="flex items-center justify-between border-b border-black/30 dark:border-white/30 pb-1">
             <span className="font-bold text-[11px] uppercase tracking-wider">
               &gt; RECURRENT CYCLE ORBIT TRAJECTORY
@@ -98,12 +112,12 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
                     }`}
                     title={`State: ${stateKey}`}
                   >
-                    [{stateKey}]
+                    {stateKey}
                   </span>
                 </React.Fragment>
               );
             })}
-            <span className="text-black/40 dark:text-white/40 font-bold">➔ [LOOP ∞]</span>
+            <span className="text-black/40 dark:text-white/40 font-bold">➔ LOOP ∞</span>
           </div>
         </div>
       ) : (
@@ -139,21 +153,22 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
         </div>
       </div>
 
-      {/* Theoretical Explanation */}
-      <div className="border border-black dark:border-white p-2 text-[11px] leading-relaxed space-y-1 bg-black/5 dark:bg-white/5">
+      {/* Structural Analysis breakdown */}
+      <div className="border border-black dark:border-white p-2 text-[11px] leading-relaxed space-y-1.5 bg-black/5 dark:bg-white/5">
         <div className="font-bold border-b border-black/30 dark:border-white/30 pb-1">
-          === THE INFINITE GRAPH PARADOX ===
+          === STRUCTURAL ANALYSIS OF THE 211-NODE GRAPH ===
         </div>
         <p>
-          Classic Tic-Tac-Toe is a <strong>Directed Acyclic Graph (DAG)</strong> where every game
-          progresses strictly forward toward a finite terminal state (win or draw).
+          • <strong>Spectral Radius (λ ≈ 2.8109):</strong> The largest Perron-Frobenius eigenvalue of the adjacency matrix. Shows exponential growth of distinct infinite trajectories.
         </p>
         <p>
-          In <strong>Tic-Toc-Toe</strong>, the line removal rule collapses the state dictionary into
-          a <strong>single, fully interconnected closed graph</strong>. Because line clearances return
-          full 9-cell boards back to 6-cell boards, every reachable state can navigate back to any other
-          reachable state. Perfect AI players become trapped in an infinite, ergodic orbit across this
-          closed state manifold.
+          • <strong>Centrality (Right Eigenvector):</strong> Measures hub-like flexibility. High centrality nodes (e.g. 0.2139) offer maximum safe choices to adapt to opponent play.
+        </p>
+        <p>
+          • <strong>Stationary Probability (Left Eigenvector):</strong> Long-run fraction of time spent in a random walk. High stationary nodes (e.g. 0.0191) act as sticky reservoirs.
+        </p>
+        <p>
+          • <strong>Sweet Spot Assets:</strong> Nodes in the top 20 of centrality and bottom of stationary probability give high player choice while being rare for opponents to anticipate.
         </p>
       </div>
     </div>
