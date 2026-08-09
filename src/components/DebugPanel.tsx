@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BoardState, GameMode, Line, MoveHistoryItem, Player } from '../types';
+import { BoardState, GameMode, Line, MoveHistoryItem, Player, GameVariant } from '../types';
 import {
   boardToAbstractString,
   boardToString,
@@ -14,6 +14,7 @@ interface DebugPanelProps {
   board: BoardState;
   currentTurn: Player;
   mode: GameMode;
+  variant: GameVariant;
   history: MoveHistoryItem[];
   winner: Player | null;
   filledLines: Line[];
@@ -33,6 +34,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
   board,
   currentTurn,
   mode,
+  variant = 'TTT',
   history,
   winner,
   filledLines,
@@ -49,11 +51,12 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'engine' | 'scc'>('scc');
 
+  const activeVariant: GameVariant = (variant as GameVariant) || 'TTT';
   const rawStr = boardToString(board);
   const abstractStr = boardToAbstractString(board);
   const canonicalMatch = matchCanonicalClass(board);
   const safeLines = getSafeLineRemovals(board);
-  const aiRecommendation = getBestAIMove(board, currentTurn);
+  const aiRecommendation = getBestAIMove(board, currentTurn, activeVariant);
 
   const countX = board.filter((c) => c === 'X').length;
   const countO = board.filter((c) => c === 'O').length;
@@ -158,6 +161,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
       {activeTab === 'scc' ? (
         <SccGraphPanel
           historyBoards={historyBoards}
+          variant={variant}
           isAiVsAi={mode === 'ava'}
           aiSpeed={aiSpeed}
         />

@@ -2,9 +2,11 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   BoardState,
   GameMode,
+  GameVariant,
   Line,
   MoveHistoryItem,
   Player,
+  UiMode,
 } from './types';
 import {
   checkWin,
@@ -22,6 +24,9 @@ export default function App() {
   const [board, setBoard] = useState<BoardState>(INITIAL_BOARD);
   const [currentTurn, setCurrentTurn] = useState<Player>('X');
   const [mode, setMode] = useState<GameMode>('pva_x');
+  const [variant, setVariant] = useState<GameVariant>('TTT');
+  const [uiMode, setUiMode] = useState<UiMode>('NORMAL');
+  const [activePlacementSymbol, setActivePlacementSymbol] = useState<Player>('X');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isDebug, setIsDebug] = useState<boolean>(false);
@@ -48,7 +53,7 @@ export default function App() {
     });
   }, []);
 
-  const winInfo = checkWin(board);
+  const winInfo = checkWin(board, variant, currentTurn === 'X' ? 'O' : 'X');
   const winner = winInfo.winner;
   const winningLine = winInfo.winningLine;
 
@@ -70,21 +75,46 @@ export default function App() {
     handleReset();
   };
 
+  // Variant Selection
+  const handleSelectVariant = (newVariant: GameVariant) => {
+    setVariant(newVariant);
+    handleReset();
+  };
+
+  // UI Mode Toggle (NORMAL vs WIP)
+  const handleToggleUiMode = () => {
+    setUiMode((prev) => {
+      const next = prev === 'NORMAL' ? 'WIP' : 'NORMAL';
+      if (next === 'NORMAL') {
+        setVariant('TTT');
+      }
+      return next;
+    });
+    handleReset();
+  };
+
+  // Invert Active Mark
+  const handleInvertPlacementSymbol = () => {
+    setActivePlacementSymbol((prev) => (prev === 'X' ? 'O' : 'X'));
+  };
+
   // Place Mark Action
   const handleCellClick = useCallback(
     (index: number) => {
       if (board[index] !== null || winner !== null || isAiThinking) return;
       recordGameStart();
 
+      const symbolToPlace = variant === 'OXO' ? activePlacementSymbol : currentTurn;
       const boardBefore = [...board];
       const newBoard = [...board];
-      newBoard[index] = currentTurn;
+      newBoard[index] = symbolToPlace;
 
       const newHistoryItem: MoveHistoryItem = {
         id: `move-${Date.now()}-${Math.random()}`,
         turn: currentTurn,
         action: 'place',
         cellIndex: index,
+        symbolPlaced: symbolToPlace,
         boardBefore,
         boardAfter: newBoard,
         timestamp: Date.now(),
@@ -93,12 +123,12 @@ export default function App() {
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
 
-      const check = checkWin(newBoard);
+      const check = checkWin(newBoard, variant, currentTurn);
       if (!check.winner) {
         setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
       }
     },
-    [board, currentTurn, winner, isAiThinking, recordGameStart]
+    [board, currentTurn, variant, activePlacementSymbol, winner, isAiThinking, recordGameStart]
   );
 
   // Clear Line Action
@@ -146,18 +176,20 @@ export default function App() {
     recordGameStart();
 
     setIsAiThinking(true);
-    const move = getBestAIMove(board, currentTurn);
+    const move = getBestAIMove(board, currentTurn, variant);
 
     if (move.action === 'place' && move.index !== undefined) {
+      const symbolToPlace = move.symbolPlaced || (variant === 'OXO' ? 'X' : currentTurn);
       const boardBefore = [...board];
       const newBoard = [...board];
-      newBoard[move.index] = currentTurn;
+      newBoard[move.index] = symbolToPlace;
 
       const newHistoryItem: MoveHistoryItem = {
         id: `move-${Date.now()}-${Math.random()}`,
         turn: currentTurn,
         action: 'place',
         cellIndex: move.index,
+        symbolPlaced: symbolToPlace,
         boardBefore,
         boardAfter: newBoard,
         timestamp: Date.now(),
@@ -166,7 +198,7 @@ export default function App() {
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
 
-      const check = checkWin(newBoard);
+      const check = checkWin(newBoard, variant, currentTurn);
       if (!check.winner) {
         setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
       }
@@ -193,7 +225,7 @@ export default function App() {
     }
 
     setIsAiThinking(false);
-  }, [board, currentTurn, winner, recordGameStart]);
+  }, [board, currentTurn, variant, winner, recordGameStart]);
 
   // AI Auto-Triggering Effect
   useEffect(() => {
@@ -226,8 +258,12 @@ export default function App() {
         {/* Header */}
         <Header
           mode={mode}
+          variant={variant}
+          uiMode={uiMode}
           isDebug={isDebug}
           onSelectMode={handleSelectMode}
+          onSelectVariant={handleSelectVariant}
+          onToggleUiMode={handleToggleUiMode}
           onOpenRules={() => setIsRulesOpen(true)}
           onToggleDebug={() => setIsDebug((prev) => !prev)}
           onReset={handleReset}
@@ -242,6 +278,11 @@ export default function App() {
             winner={winner}
             filledLines={filledLines}
             isBoardFull={boardIsFull}
+            variant={variant}
+            uiMode={uiMode}
+            activePlacementSymbol={activePlacementSymbol}
+            onSelectPlacementSymbol={setActivePlacementSymbol}
+            onInvertPlacementSymbol={handleInvertPlacementSymbol}
             onCellClick={handleCellClick}
             onClearLine={handleClearLine}
             disabled={!isHumanTurn}
@@ -254,6 +295,7 @@ export default function App() {
             board={board}
             currentTurn={currentTurn}
             mode={mode}
+            variant={variant}
             history={history}
             winner={winner}
             filledLines={filledLines}

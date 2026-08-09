@@ -1,10 +1,14 @@
 import React from 'react';
-import { GameMode } from '../types';
+import { GameMode, GameVariant, UiMode } from '../types';
 
 interface HeaderProps {
   mode: GameMode;
+  variant: GameVariant;
+  uiMode: UiMode;
   isDebug: boolean;
   onSelectMode: (mode: GameMode) => void;
+  onSelectVariant: (variant: GameVariant) => void;
+  onToggleUiMode: () => void;
   onOpenRules: () => void;
   onToggleDebug: () => void;
   onReset: () => void;
@@ -12,8 +16,12 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({
   mode,
+  variant,
+  uiMode,
   isDebug,
   onSelectMode,
+  onSelectVariant,
+  onToggleUiMode,
   onOpenRules,
   onToggleDebug,
   onReset,
@@ -21,14 +29,59 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="w-full max-w-xl mx-auto mb-6 font-mono text-black dark:text-white">
       {/* Title & Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-black dark:border-white pb-3 gap-2">
-        <div className="text-center sm:text-left">
+      <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-black dark:border-white pb-3 gap-3">
+        <div className="flex flex-col items-center sm:items-start">
           <h1 className="text-2xl font-bold tracking-widest uppercase">
-            TIC TOC TOE
+            {uiMode === 'WIP' && variant === 'OXO' ? 'XOX' : 'TIC TOC TOE'}
           </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Game Variant Switch & Action Controls */}
+        <div className="flex flex-wrap items-center gap-2">
+          {/* NORMAL | WIP UI Mode Toggle */}
+          <button
+            onClick={onToggleUiMode}
+            className={`px-2.5 py-1 border-2 border-black dark:border-white text-xs font-black transition-colors ${
+              uiMode === 'WIP'
+                ? 'bg-black text-white dark:bg-white dark:text-black'
+                : 'bg-white text-black dark:bg-black dark:text-white hover:bg-black/10'
+            }`}
+            id="ui-mode-toggle-btn"
+            title="Toggle between minimal NORMAL interface and WIP experimental features"
+          >
+            {uiMode === 'WIP' ? 'WIP' : 'NORMAL'}
+          </button>
+
+          {/* TTT / XOX Toggle (Revealed only in WIP mode) */}
+          {uiMode === 'WIP' && (
+            <div className="flex items-center border-2 border-black dark:border-white text-xs font-bold">
+              <button
+                onClick={() => onSelectVariant('TTT')}
+                className={`px-2.5 py-1 transition-colors ${
+                  variant === 'TTT'
+                    ? 'bg-black text-white dark:bg-white dark:text-black font-black'
+                    : 'hover:bg-black/10 dark:hover:bg-white/10'
+                }`}
+                id="variant-ttt-btn"
+                title="Standard Tic-Tac-Toe Line Removal Variant (211 States)"
+              >
+                TTT
+              </button>
+              <button
+                onClick={() => onSelectVariant('OXO')}
+                className={`px-2.5 py-1 transition-colors ${
+                  variant === 'OXO'
+                    ? 'bg-black text-white dark:bg-white dark:text-black font-black'
+                    : 'hover:bg-black/10 dark:hover:bg-white/10'
+                }`}
+                id="variant-oxo-btn"
+                title="OXO/XOX Line Removal Variant with Free Symbol Choice (1080 States)"
+              >
+                XOX
+              </button>
+            </div>
+          )}
+
           <button
             onClick={onOpenRules}
             className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"

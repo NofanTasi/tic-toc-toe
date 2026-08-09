@@ -1,4 +1,4 @@
-import { BoardState, Line, Player, CanonicalMatch } from '../types';
+import { BoardState, Line, Player, CanonicalMatch, GameVariant } from '../types';
 
 export const LINES: Line[] = [
   { id: 'row-1', name: 'Row 1 (Top)', indices: [0, 1, 2], type: 'row' },
@@ -13,11 +13,25 @@ export const LINES: Line[] = [
 
 export const INITIAL_BOARD: BoardState = Array(9).fill(null);
 
-export function checkWin(board: BoardState): { winner: Player | null; winningLine: Line | null } {
-  for (const line of LINES) {
-    const [a, b, c] = line.indices;
-    if (board[a] && board[a] === board[b] && board[a] === board[c]) {
-      return { winner: board[a], winningLine: line };
+export function checkWin(
+  board: BoardState,
+  variant: GameVariant = 'TTT',
+  lastTurnPlayer: Player = 'X'
+): { winner: Player | null; winningLine: Line | null } {
+  if (variant === 'TTT') {
+    for (const line of LINES) {
+      const [a, b, c] = line.indices;
+      if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+        return { winner: board[a], winningLine: line };
+      }
+    }
+  } else {
+    // OXO mode: line must be O - X - O
+    for (const line of LINES) {
+      const [a, b, c] = line.indices;
+      if (board[a] === 'O' && board[b] === 'X' && board[c] === 'O') {
+        return { winner: lastTurnPlayer, winningLine: line };
+      }
     }
   }
   return { winner: null, winningLine: null };
@@ -205,7 +219,7 @@ export function getSafeLineRemovals(board: BoardState): Line[] {
 }
 
 /**
-  Alpha-Beta Minimax for Tic-Tac-Toe with Dynamic Line Removals.
+  Alpha-Beta Minimax for Tic-Tac-Toe / OXO with Dynamic Line Removals.
   Uses depth-weighted scores:
     +1000 - depth for aiPlayer win
     -1000 + depth for opponent win
@@ -219,9 +233,10 @@ function dynamicAlphaBetaMinimax(
   isMaximizing: boolean,
   aiPlayer: Player,
   opponent: Player,
-  maxDepth: number = 10
+  variant: GameVariant = 'TTT',
+  maxDepth: number = 8
 ): number {
-  const winState = checkWin(board);
+  const winState = checkWin(board, variant, isMaximizing ? opponent : aiPlayer);
   if (winState.winner === aiPlayer) return 1000 - depth;
   if (winState.winner === opponent) return depth - 1000;
 
@@ -236,30 +251,35 @@ function dynamicAlphaBetaMinimax(
 
   if (emptyIndices.length === 0 && filledLines.length === 0) return 0;
 
+  const symbolChoices: Player[] =
+    variant === 'TTT' ? [isMaximizing ? aiPlayer : opponent] : ['X', 'O'];
+
   if (isMaximizing) {
     let maxEval = -Infinity;
 
-    // 1. Placement moves
     for (const idx of emptyIndices) {
-      board[idx] = aiPlayer;
-      const evaluation = dynamicAlphaBetaMinimax(
-        board,
-        depth + 1,
-        alpha,
-        beta,
-        false,
-        aiPlayer,
-        opponent,
-        maxDepth
-      );
-      board[idx] = null;
+      for (const symbol of symbolChoices) {
+        board[idx] = symbol;
+        const evaluation = dynamicAlphaBetaMinimax(
+          board,
+          depth + 1,
+          alpha,
+          beta,
+          false,
+          aiPlayer,
+          opponent,
+          variant,
+          maxDepth
+        );
+        board[idx] = null;
 
-      maxEval = Math.max(maxEval, evaluation);
-      alpha = Math.max(alpha, evaluation);
-      if (beta <= alpha) break; // Alpha-Beta Cutoff
+        maxEval = Math.max(maxEval, evaluation);
+        alpha = Math.max(alpha, evaluation);
+        if (beta <= alpha) break;
+      }
+      if (beta <= alpha) break;
     }
 
-    // 2. Line Removal moves
     if (beta > alpha && filledLines.length > 0) {
       for (const line of filledLines) {
         const originalPieces = line.indices.map((i) => board[i]);
@@ -273,6 +293,7 @@ function dynamicAlphaBetaMinimax(
           false,
           aiPlayer,
           opponent,
+          variant,
           maxDepth
         );
 
@@ -280,7 +301,7 @@ function dynamicAlphaBetaMinimax(
 
         maxEval = Math.max(maxEval, evaluation);
         alpha = Math.max(alpha, evaluation);
-        if (beta <= alpha) break; // Alpha-Beta Cutoff
+        if (beta <= alpha) break;
       }
     }
 
@@ -288,27 +309,29 @@ function dynamicAlphaBetaMinimax(
   } else {
     let minEval = Infinity;
 
-    // 1. Placement moves
     for (const idx of emptyIndices) {
-      board[idx] = opponent;
-      const evaluation = dynamicAlphaBetaMinimax(
-        board,
-        depth + 1,
-        alpha,
-        beta,
-        true,
-        aiPlayer,
-        opponent,
-        maxDepth
-      );
-      board[idx] = null;
+      for (const symbol of symbolChoices) {
+        board[idx] = symbol;
+        const evaluation = dynamicAlphaBetaMinimax(
+          board,
+          depth + 1,
+          alpha,
+          beta,
+          true,
+          aiPlayer,
+          opponent,
+          variant,
+          maxDepth
+        );
+        board[idx] = null;
 
-      minEval = Math.min(minEval, evaluation);
-      beta = Math.min(beta, evaluation);
-      if (beta <= alpha) break; // Alpha-Beta Cutoff
+        minEval = Math.min(minEval, evaluation);
+        beta = Math.min(beta, evaluation);
+        if (beta <= alpha) break;
+      }
+      if (beta <= alpha) break;
     }
 
-    // 2. Line Removal moves
     if (beta > alpha && filledLines.length > 0) {
       for (const line of filledLines) {
         const originalPieces = line.indices.map((i) => board[i]);
@@ -322,6 +345,7 @@ function dynamicAlphaBetaMinimax(
           true,
           aiPlayer,
           opponent,
+          variant,
           maxDepth
         );
 
@@ -329,7 +353,7 @@ function dynamicAlphaBetaMinimax(
 
         minEval = Math.min(minEval, evaluation);
         beta = Math.min(beta, evaluation);
-        if (beta <= alpha) break; // Alpha-Beta Cutoff
+        if (beta <= alpha) break;
       }
     }
 
@@ -350,14 +374,14 @@ function getPositionalRank(index: number): number {
 }
 
 /**
-  AI Strategy Engine for Tic Toc Toe with Dynamic Line Removals.
-  Combines Minimax with Canonical D4 Symmetries, Immediate Win/Threat filters, and Line Removal options.
-  Guarantees 100% mathematically optimal draw play in AI vs AI mode (infinite Catch-22 loop).
+  AI Strategy Engine for Tic Toc Toe / OXO with Dynamic Line Removals.
+  Combines Minimax with Canonical D4 Symmetries, Immediate Win filters, and Line Removal options.
 */
 export function getBestAIMove(
   board: BoardState,
-  aiPlayer: Player
-): { action: 'place' | 'clear'; index?: number; line?: Line } {
+  aiPlayer: Player,
+  variant: GameVariant = 'TTT'
+): { action: 'place' | 'clear'; index?: number; symbolPlaced?: Player; line?: Line } {
   const opponent: Player = aiPlayer === 'X' ? 'O' : 'X';
 
   const emptyIndices: number[] = [];
@@ -366,8 +390,8 @@ export function getBestAIMove(
   }
   const filledLines = getFilledLines(board);
 
-  // 1. FULL BOARD (9 pieces): Use Canonical D4 Symmetries for infinite draw diversity
-  if (isBoardFull(board)) {
+  // 1. FULL BOARD (9 pieces) in TTT: Use Canonical D4 Symmetries for infinite draw diversity
+  if (variant === 'TTT' && isBoardFull(board)) {
     const canonicalMatch = matchCanonicalClass(board);
 
     if (canonicalMatch && canonicalMatch.safeLineIds.length > 0) {
@@ -379,88 +403,64 @@ export function getBestAIMove(
     }
   }
 
+  const symbolChoices: Player[] = variant === 'TTT' ? [aiPlayer] : ['X', 'O'];
+
   // 2. IMMEDIATE WIN CHECK (AI can win on this turn)
   for (const idx of emptyIndices) {
-    board[idx] = aiPlayer;
-    if (checkWin(board).winner === aiPlayer) {
+    for (const sym of symbolChoices) {
+      board[idx] = sym;
+      if (checkWin(board, variant, aiPlayer).winner === aiPlayer) {
+        board[idx] = null;
+        return { action: 'place', index: idx, symbolPlaced: sym };
+      }
       board[idx] = null;
-      return { action: 'place', index: idx };
     }
-    board[idx] = null;
   }
   for (const line of filledLines) {
     const originalPieces = line.indices.map((i) => board[i]);
     line.indices.forEach((i) => (board[i] = null));
-    if (checkWin(board).winner === aiPlayer) {
+    if (checkWin(board, variant, aiPlayer).winner === aiPlayer) {
       line.indices.forEach((i, idx) => (board[i] = originalPieces[idx]));
       return { action: 'clear', line };
     }
     line.indices.forEach((i, idx) => (board[i] = originalPieces[idx]));
   }
 
-  // 3. IMMEDIATE THREAT DETECTION FOR OPPONENT
-  // Find lines where opponent has 2 pieces and 1 cell is empty
-  interface OpponentThreat {
-    line: Line;
-    emptyIdx: number;
-    oppIndices: number[];
-  }
-  const opponentThreats: OpponentThreat[] = [];
-  for (const line of LINES) {
-    const pieces = line.indices.map((i) => board[i]);
-    const oppCount = pieces.filter((p) => p === opponent).length;
-    const nullCount = pieces.filter((p) => p === null).length;
-    if (oppCount === 2 && nullCount === 1) {
-      const emptyIdx = line.indices.find((i) => board[i] === null)!;
-      const oppIndices = line.indices.filter((i) => board[i] === opponent);
-      opponentThreats.push({ line, emptyIdx, oppIndices });
-    }
-  }
-
   type CandidateMove =
-    | { action: 'place'; index: number; score: number; posRank: number; neutralizedCount: number }
-    | { action: 'clear'; line: Line; score: number; posRank: number; neutralizedCount: number };
+    | { action: 'place'; index: number; symbolPlaced: Player; score: number; posRank: number }
+    | { action: 'clear'; line: Line; score: number; posRank: number };
 
-  let candidates: CandidateMove[] = [];
+  const candidates: CandidateMove[] = [];
 
   // A. Evaluate placement candidates
   for (const idx of emptyIndices) {
-    let neutralizedCount = 0;
-    if (opponentThreats.length > 0) {
-      neutralizedCount = opponentThreats.filter((t) => t.emptyIdx === idx).length;
+    for (const sym of symbolChoices) {
+      board[idx] = sym;
+      const score = dynamicAlphaBetaMinimax(
+        board,
+        1,
+        -Infinity,
+        Infinity,
+        false,
+        aiPlayer,
+        opponent,
+        variant,
+        8
+      );
+      board[idx] = null;
+
+      candidates.push({
+        action: 'place',
+        index: idx,
+        symbolPlaced: sym,
+        score,
+        posRank: getPositionalRank(idx),
+      });
     }
-
-    board[idx] = aiPlayer;
-    const score = dynamicAlphaBetaMinimax(
-      board,
-      1,
-      -Infinity,
-      Infinity,
-      false,
-      aiPlayer,
-      opponent,
-      10
-    );
-    board[idx] = null;
-
-    candidates.push({
-      action: 'place',
-      index: idx,
-      score,
-      posRank: getPositionalRank(idx),
-      neutralizedCount,
-    });
   }
 
-  // B. Evaluate line removal candidates (if any line is filled)
+  // B. Evaluate line removal candidates
   for (const line of filledLines) {
-    let neutralizedCount = 0;
-    if (opponentThreats.length > 0) {
-      neutralizedCount = opponentThreats.filter((t) =>
-        t.oppIndices.some((oppIdx) => line.indices.includes(oppIdx))
-      ).length;
-    }
-
     const originalPieces = line.indices.map((i) => board[i]);
     line.indices.forEach((i) => (board[i] = null));
 
@@ -472,7 +472,8 @@ export function getBestAIMove(
       false,
       aiPlayer,
       opponent,
-      10
+      variant,
+      8
     );
 
     line.indices.forEach((i, idx) => (board[i] = originalPieces[idx]));
@@ -482,33 +483,20 @@ export function getBestAIMove(
       line,
       score,
       posRank: 0,
-      neutralizedCount,
     });
   }
 
   if (candidates.length === 0) {
-    return { action: 'place', index: 0 };
-  }
-
-  // If opponent has threats, prioritize candidates that neutralize maximum threats
-  if (opponentThreats.length > 0) {
-    const maxNeutralized = Math.max(...candidates.map((c) => c.neutralizedCount));
-    if (maxNeutralized > 0) {
-      candidates = candidates.filter((c) => c.neutralizedCount === maxNeutralized);
-    }
+    return { action: 'place', index: 0, symbolPlaced: 'X' };
   }
 
   // Find maximum minimax score
   const maxScore = Math.max(...candidates.map((c) => c.score));
-
-  // Filter to top-scoring candidates
   const topCandidates = candidates.filter((c) => c.score === maxScore);
-
-  // Pick randomly among top candidates
   const chosen = topCandidates[Math.floor(Math.random() * topCandidates.length)];
 
   if (chosen.action === 'place') {
-    return { action: 'place', index: chosen.index };
+    return { action: 'place', index: chosen.index, symbolPlaced: chosen.symbolPlaced };
   } else {
     return { action: 'clear', line: chosen.line };
   }

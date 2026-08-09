@@ -1,18 +1,21 @@
 import React from 'react';
-import { BoardState } from '../types';
-import { calculateSccMetrics, TOTAL_CANONICAL_STATES } from '../utils/sccGraph';
+import { BoardState, GameVariant } from '../types';
+import { calculateSccMetrics } from '../utils/sccGraph';
 
 interface SccGraphPanelProps {
   historyBoards: BoardState[];
-  isAiVsAi: boolean;
+  variant?: GameVariant;
+  isAiVsAi?: boolean;
   onFastOrbit?: () => void;
   aiSpeed?: number;
 }
 
 export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
   historyBoards,
+  variant = 'TTT',
 }) => {
-  const metrics = calculateSccMetrics(historyBoards);
+  const activeVariant: GameVariant = (variant as GameVariant) || 'TTT';
+  const metrics = calculateSccMetrics(historyBoards, activeVariant);
   const { cycleInfo, recentPath, topology } = metrics;
 
   return (
@@ -21,7 +24,7 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
       <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2">
         <div className="flex items-center gap-2">
           <span className="font-bold uppercase tracking-wider text-sm">
-            ∞ GAME GRAPH EXPLORER
+            ∞ {variant === 'OXO' ? 'XOX' : 'TTT'} GAME GRAPH EXPLORER
           </span>
           {cycleInfo.isCycle && (
             <span className="bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 text-[10px] font-bold animate-pulse">
@@ -29,14 +32,14 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
             </span>
           )}
         </div>
-        <span className="text-[10px] opacity-75">211 CANONICAL STATES</span>
+        <span className="text-[10px] opacity-75">{metrics.totalCanonicalStates} CANONICAL STATES</span>
       </div>
 
       {/* Primary Topology & Spectral Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
         <div className="border border-black dark:border-white p-2">
           <div className="text-[10px] opacity-75 uppercase">Visited States</div>
-          <div className="text-lg font-bold">{metrics.uniqueStatesCount} / {TOTAL_CANONICAL_STATES}</div>
+          <div className="text-lg font-bold">{metrics.uniqueStatesCount} / {metrics.totalCanonicalStates}</div>
         </div>
 
         <div className="border border-black dark:border-white p-2">
@@ -156,19 +159,19 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
       {/* Structural Analysis breakdown */}
       <div className="border border-black dark:border-white p-2 text-[11px] leading-relaxed space-y-1.5 bg-black/5 dark:bg-white/5">
         <div className="font-bold border-b border-black/30 dark:border-white/30 pb-1">
-          === STRUCTURAL ANALYSIS OF THE 211-NODE GRAPH ===
+          === STRUCTURAL ANALYSIS OF THE {metrics.totalCanonicalStates}-NODE {variant} GRAPH ===
         </div>
         <p>
-          • <strong>Spectral Radius (λ ≈ 2.8109):</strong> The largest Perron-Frobenius eigenvalue of the adjacency matrix. Shows exponential growth of distinct infinite trajectories.
+          • <strong>Spectral Radius (λ ≈ {metrics.spectralRadius}):</strong> The largest Perron-Frobenius eigenvalue of the adjacency matrix. Shows exponential growth of distinct infinite trajectories.
         </p>
         <p>
-          • <strong>Centrality (Right Eigenvector):</strong> Measures hub-like flexibility. High centrality nodes (e.g. 0.2139) offer maximum safe choices to adapt to opponent play.
+          • <strong>Centrality (Right Eigenvector):</strong> Measures hub-like flexibility. High centrality nodes offer maximum safe choices to adapt to opponent play.
         </p>
         <p>
-          • <strong>Stationary Probability (Left Eigenvector):</strong> Long-run fraction of time spent in a random walk. High stationary nodes (e.g. 0.0191) act as sticky reservoirs.
+          • <strong>Stationary Probability (Left Eigenvector):</strong> Long-run fraction of time spent in a random walk. High stationary nodes act as sticky reservoirs.
         </p>
         <p>
-          • <strong>Sweet Spot Assets:</strong> Nodes in the top 20 of centrality and bottom of stationary probability give high player choice while being rare for opponents to anticipate.
+          • <strong>Sweet Spot Assets:</strong> Nodes in the top centrality bracket with low stationary probability give high player choice while remaining rare for opponents to anticipate.
         </p>
       </div>
     </div>

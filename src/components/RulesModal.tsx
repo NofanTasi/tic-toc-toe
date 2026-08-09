@@ -54,14 +54,17 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
         <div className="space-y-3 text-xs">
           {activeTab === 'rules' ? (
             <div className="space-y-3">
-              <div className="border border-black dark:border-white p-3 leading-relaxed">
+              <div className="border border-black dark:border-white p-2.5 leading-relaxed">
+                <strong>TTT Mode:</strong> Standard Tic-Tac-Toe symbols (X vs O). Win by completing a line of 3 matching symbols (XXX or OOO).
+              </div>
+              <div className="border border-black dark:border-white p-2.5 leading-relaxed">
+                <strong>OXO Mode:</strong> Either player can place 'X' or 'O' into any empty cell! Win by forming an 'O-X-O' line on your move.
+              </div>
+              <div className="border border-black dark:border-white p-2.5 leading-relaxed">
                 <strong>Line Removal Rule:</strong> At any turn, a player can remove 3 symbols in a line (row, column, or diagonal that is fully filled).
               </div>
-              <div className="border border-black dark:border-white p-3 leading-relaxed">
-                <strong>Placement Rule:</strong> If there are empty cells on the board, a player can place their symbol ('X' or 'O') in any open cell.
-              </div>
-              <div className="border border-black dark:border-white p-3 leading-relaxed">
-                <strong>Full Board Dynamic:</strong> When all 9 cells are full, a player must clear a filled line to continue play.
+              <div className="border border-black dark:border-white p-2.5 leading-relaxed">
+                <strong>Full Board Dynamic:</strong> When all 9 cells are full, a player must clear a filled line to continue play into endless loops.
               </div>
             </div>
           ) : (
@@ -71,13 +74,13 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                   THE INFINITE RECURRENT GAME GRAPH
                 </div>
                 <p className="mb-2">
-                  In classical games like Tic-Tac-Toe, the state space is a <strong>Directed Acyclic Graph (DAG)</strong> leading to terminal leaves (win, loss, draw).
+                  In classical games like Tic-Tac-Toe, the state space is a <strong>Directed Acyclic Graph (DAG)</strong> leading to terminal leaves.
                 </p>
                 <p className="mb-2">
-                  In <strong>Tic-Toc-Toe</strong>, the state dictionary condenses into a <strong>Single 211-Node Interconnected Graph</strong> under D4 symmetry and role swap.
+                  In <strong>TTT Removal Variant</strong>, the state space reduces to a <strong>211-Node Strongly Connected Component</strong> under D4 symmetry and role swap (λ ≈ 2.8109).
                 </p>
                 <p>
-                  Because clearing a line converts 9-piece full boards back to 6-piece boards, every reachable state can navigate to every other state in an ergodic loop!
+                  In <strong>OXO Removal Variant</strong>, freely placing X or O expands the symmetric canonical graph to <strong>1080 Interconnected Nodes</strong> (λ ≈ 3.414).
                 </p>
               </div>
 
@@ -85,9 +88,9 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 <div className="font-bold border-b border-black/30 dark:border-white/30 pb-1 mb-1">
                   SPECTRAL TOPOLOGY MAP
                 </div>
-                <p>• <strong>Branching Factor (λ ≈ 2.8109):</strong> The largest eigenvalue governing exponential path growth.</p>
-                <p>• <strong>Centrality Hubs:</strong> States with high eigenvector centrality (up to 0.2139) offering maximum strategic flexibility.</p>
-                <p>• <strong>Sticky Reservoirs:</strong> States with high long-run stationary probability (up to 0.0191) where players spend most of their game time.</p>
+                <p>• <strong>Spectral Radius (λ):</strong> The largest eigenvalue governing exponential path growth.</p>
+                <p>• <strong>Centrality Hubs:</strong> States with high eigenvector centrality offering maximum strategic choice flexibility.</p>
+                <p>• <strong>Sticky Reservoirs:</strong> States with high stationary probability where players spend most of their ergodic game time.</p>
               </div>
             </div>
           )}

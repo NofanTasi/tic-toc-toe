@@ -2,6 +2,9 @@ export type Player = 'X' | 'O';
 export type CellState = Player | null;
 export type BoardState = CellState[];
 
+export type GameVariant = 'TTT' | 'OXO';
+export type UiMode = 'NORMAL' | 'WIP';
+
 export type LineType = 'row' | 'col' | 'diag';
 
 export interface Line {
@@ -20,6 +23,7 @@ export interface MoveHistoryItem {
   turn: Player;
   action: 'place' | 'clear';
   cellIndex?: number;
+  symbolPlaced?: Player;
   lineCleared?: Line;
   boardBefore: BoardState;
   boardAfter: BoardState;
