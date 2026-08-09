@@ -6,7 +6,6 @@ import {
   Line,
   MoveHistoryItem,
   Player,
-  UiMode,
 } from './types';
 import {
   checkWin,
@@ -25,7 +24,6 @@ export default function App() {
   const [currentTurn, setCurrentTurn] = useState<Player>('X');
   const [mode, setMode] = useState<GameMode>('pva_x');
   const [variant, setVariant] = useState<GameVariant>('TTT');
-  const [uiMode, setUiMode] = useState<UiMode>('NORMAL');
   const [activePlacementSymbol, setActivePlacementSymbol] = useState<Player>('X');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
@@ -78,18 +76,6 @@ export default function App() {
   // Variant Selection
   const handleSelectVariant = (newVariant: GameVariant) => {
     setVariant(newVariant);
-    handleReset();
-  };
-
-  // UI Mode Toggle (NORMAL vs WIP)
-  const handleToggleUiMode = () => {
-    setUiMode((prev) => {
-      const next = prev === 'NORMAL' ? 'WIP' : 'NORMAL';
-      if (next === 'NORMAL') {
-        setVariant('TTT');
-      }
-      return next;
-    });
     handleReset();
   };
 
@@ -259,11 +245,9 @@ export default function App() {
         <Header
           mode={mode}
           variant={variant}
-          uiMode={uiMode}
           isDebug={isDebug}
           onSelectMode={handleSelectMode}
           onSelectVariant={handleSelectVariant}
-          onToggleUiMode={handleToggleUiMode}
           onOpenRules={() => setIsRulesOpen(true)}
           onToggleDebug={() => setIsDebug((prev) => !prev)}
           onReset={handleReset}
@@ -279,7 +263,6 @@ export default function App() {
             filledLines={filledLines}
             isBoardFull={boardIsFull}
             variant={variant}
-            uiMode={uiMode}
             activePlacementSymbol={activePlacementSymbol}
             onSelectPlacementSymbol={setActivePlacementSymbol}
             onInvertPlacementSymbol={handleInvertPlacementSymbol}

@@ -3,7 +3,6 @@ export type CellState = Player | null;
 export type BoardState = CellState[];
 
 export type GameVariant = 'TTT' | 'OXO';
-export type UiMode = 'NORMAL' | 'WIP';
 
 export type LineType = 'row' | 'col' | 'diag';
 

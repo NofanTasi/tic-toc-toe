@@ -426,6 +426,21 @@ export function getBestAIMove(
     line.indices.forEach((i, idx) => (board[i] = originalPieces[idx]));
   }
 
+  // 3. IMMEDIATE BLOCK CHECK (Opponent can win on their next turn if empty index is filled)
+  const oppSymbols: Player[] = variant === 'TTT' ? [opponent] : ['X', 'O'];
+  for (const idx of emptyIndices) {
+    for (const oppSym of oppSymbols) {
+      board[idx] = oppSym;
+      const oppWin = checkWin(board, variant, opponent);
+      board[idx] = null;
+      if (oppWin.winner === opponent) {
+        // AI must block by occupying this cell!
+        const blockSymbol = variant === 'TTT' ? aiPlayer : oppSym === 'O' ? 'X' : 'O';
+        return { action: 'place', index: idx, symbolPlaced: blockSymbol };
+      }
+    }
+  }
+
   type CandidateMove =
     | { action: 'place'; index: number; symbolPlaced: Player; score: number; posRank: number }
     | { action: 'clear'; line: Line; score: number; posRank: number };
@@ -493,7 +508,12 @@ export function getBestAIMove(
   // Find maximum minimax score
   const maxScore = Math.max(...candidates.map((c) => c.score));
   const topCandidates = candidates.filter((c) => c.score === maxScore);
-  const chosen = topCandidates[Math.floor(Math.random() * topCandidates.length)];
+
+  // Tie-breaker: prioritize candidates with highest positional rank / centrality (Center > Corners > Edges)
+  const maxPosRank = Math.max(...topCandidates.map((c) => c.posRank));
+  const bestPosCandidates = topCandidates.filter((c) => c.posRank === maxPosRank);
+
+  const chosen = bestPosCandidates[Math.floor(Math.random() * bestPosCandidates.length)];
 
   if (chosen.action === 'place') {
     return { action: 'place', index: chosen.index, symbolPlaced: chosen.symbolPlaced };

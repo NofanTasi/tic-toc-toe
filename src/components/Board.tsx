@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoardState, Line, Player, GameVariant, UiMode } from '../types';
+import { BoardState, Line, Player, GameVariant } from '../types';
 
 interface BoardProps {
   board: BoardState;
@@ -9,7 +9,6 @@ interface BoardProps {
   filledLines: Line[];
   isBoardFull: boolean;
   variant?: GameVariant;
-  uiMode?: UiMode;
   activePlacementSymbol?: Player;
   onSelectPlacementSymbol?: (symbol: Player) => void;
   onInvertPlacementSymbol?: () => void;
@@ -26,7 +25,6 @@ export const Board: React.FC<BoardProps> = ({
   filledLines,
   isBoardFull,
   variant = 'TTT',
-  uiMode = 'NORMAL',
   activePlacementSymbol = 'X',
   onSelectPlacementSymbol,
   onInvertPlacementSymbol,
@@ -55,7 +53,7 @@ export const Board: React.FC<BoardProps> = ({
     }
   };
 
-  const showMarkGadget = uiMode === 'WIP' && variant === 'OXO' && !winner;
+  const showMarkGadget = variant === 'OXO' && !winner;
 
   return (
     <div className="flex flex-col items-center w-full max-w-sm mx-auto font-mono text-black dark:text-white">
