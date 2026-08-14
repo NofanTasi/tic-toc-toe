@@ -26,6 +26,7 @@ export default function App() {
   const [variant, setVariant] = useState<GameVariant>('TTT');
   const [activePlacementSymbol, setActivePlacementSymbol] = useState<Player>('X');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
+  const [redoStack, setRedoStack] = useState<MoveHistoryItem[]>([]);
   const [isRulesOpen, setIsRulesOpen] = useState<boolean>(false);
   const [isDebug, setIsDebug] = useState<boolean>(false);
   const [aiSpeed, setAiSpeed] = useState<number>(400);
@@ -63,6 +64,7 @@ export default function App() {
     setBoard(INITIAL_BOARD);
     setCurrentTurn('X');
     setHistory([]);
+    setRedoStack([]);
     setIsAiThinking(false);
     setGameTracked(false);
   }, []);
@@ -78,6 +80,31 @@ export default function App() {
     setVariant(newVariant);
     handleReset();
   };
+
+  // Speed Adjustment (Presets)
+  const SPEED_STEPS = [1500, 1000, 600, 400, 200, 100, 30];
+
+  const handleSpeedFaster = useCallback(() => {
+    setAiSpeed((current) => {
+      const idx = SPEED_STEPS.indexOf(current);
+      if (idx === -1) {
+        const found = SPEED_STEPS.findIndex((s) => s <= current);
+        return found > 0 ? SPEED_STEPS[found - 1] : SPEED_STEPS[SPEED_STEPS.length - 1];
+      }
+      return idx < SPEED_STEPS.length - 1 ? SPEED_STEPS[idx + 1] : current;
+    });
+  }, []);
+
+  const handleSpeedSlower = useCallback(() => {
+    setAiSpeed((current) => {
+      const idx = SPEED_STEPS.indexOf(current);
+      if (idx === -1) {
+        const found = SPEED_STEPS.findIndex((s) => s <= current);
+        return found !== -1 ? SPEED_STEPS[Math.max(0, found - 1)] : SPEED_STEPS[0];
+      }
+      return idx > 0 ? SPEED_STEPS[idx - 1] : current;
+    });
+  }, []);
 
   // Invert Active Mark
   const handleInvertPlacementSymbol = () => {
@@ -108,6 +135,8 @@ export default function App() {
 
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
+      setRedoStack([]); // Clear redo stack on new branch
+      setIsAiPaused(false);
 
       const check = checkWin(newBoard, variant, currentTurn);
       if (!check.winner) {
@@ -141,20 +170,39 @@ export default function App() {
 
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
+      setRedoStack([]); // Clear redo stack on new branch
+      setIsAiPaused(false);
       setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
     },
     [board, currentTurn, winner, isAiThinking, recordGameStart]
   );
 
-  // Undo Last Move
+  // Undo Single Move (last move, then second last, etc.)
   const handleUndo = useCallback(() => {
     if (history.length === 0 || isAiThinking) return;
 
+    setIsAiPaused(true);
     const lastMove = history[history.length - 1];
     setBoard(lastMove.boardBefore);
     setCurrentTurn(lastMove.turn);
     setHistory((prev) => prev.slice(0, -1));
+    setRedoStack((prev) => [lastMove, ...prev]);
   }, [history, isAiThinking]);
+
+  // Redo Single Move
+  const handleRedo = useCallback(() => {
+    if (redoStack.length === 0 || isAiThinking) return;
+
+    setIsAiPaused(true);
+    const nextMove = redoStack[0];
+    setBoard(nextMove.boardAfter);
+    const win = checkWin(nextMove.boardAfter, variant, nextMove.turn);
+    if (!win.winner) {
+      setCurrentTurn(nextMove.turn === 'X' ? 'O' : 'X');
+    }
+    setHistory((prev) => [...prev, nextMove]);
+    setRedoStack((prev) => prev.slice(1));
+  }, [redoStack, isAiThinking, variant]);
 
   // AI Step Move Logic
   const executeAiTurn = useCallback(() => {
@@ -183,6 +231,7 @@ export default function App() {
 
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
+      setRedoStack([]); // New step clears redo stack
 
       const check = checkWin(newBoard, variant, currentTurn);
       if (!check.winner) {
@@ -207,6 +256,7 @@ export default function App() {
 
       setBoard(newBoard);
       setHistory((prev) => [...prev, newHistoryItem]);
+      setRedoStack([]); // New step clears redo stack
       setCurrentTurn((prev) => (prev === 'X' ? 'O' : 'X'));
     }
 
@@ -263,12 +313,24 @@ export default function App() {
             filledLines={filledLines}
             isBoardFull={boardIsFull}
             variant={variant}
+            mode={mode}
             activePlacementSymbol={activePlacementSymbol}
             onSelectPlacementSymbol={setActivePlacementSymbol}
             onInvertPlacementSymbol={handleInvertPlacementSymbol}
             onCellClick={handleCellClick}
             onClearLine={handleClearLine}
             disabled={!isHumanTurn}
+            isAiPaused={isAiPaused}
+            onToggleAiPause={() => setIsAiPaused((prev) => !prev)}
+            onStepAi={executeAiTurn}
+            aiSpeed={aiSpeed}
+            onSpeedFaster={handleSpeedFaster}
+            onSpeedSlower={handleSpeedSlower}
+            onUndo={handleUndo}
+            canUndo={history.length > 0 && !isAiThinking}
+            onRedo={handleRedo}
+            canRedo={redoStack.length > 0 && !isAiThinking}
+            isAiThinking={isAiThinking}
           />
         </main>
 

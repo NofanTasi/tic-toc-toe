@@ -27,6 +27,8 @@ interface DebugPanelProps {
   onStepAi: () => void;
   onUndo: () => void;
   canUndo: boolean;
+  onRedo?: () => void;
+  canRedo?: boolean;
   isAiThinking: boolean;
 }
 
@@ -47,11 +49,15 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
   onStepAi,
   onUndo,
   canUndo,
+  onRedo,
+  canRedo = false,
   isAiThinking,
 }) => {
   const [activeTab, setActiveTab] = useState<'engine' | 'scc'>('scc');
+  const [copied, setCopied] = useState<boolean>(false);
 
   const activeVariant: GameVariant = (variant as GameVariant) || 'TTT';
+  const opponentLabel = activeVariant === 'TTT' ? 'TTT' : 'XOX';
   const rawStr = boardToString(board);
   const abstractStr = boardToAbstractString(board);
   const canonicalMatch = matchCanonicalClass(board);
@@ -72,7 +78,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
       <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2">
         <span className="font-bold uppercase tracking-wider">DEBUG & GRAPH ENGINE</span>
         <span className="text-[10px] opacity-75">
-          {isAiThinking ? 'AI THINKING...' : isAiPaused ? 'AI PAUSED' : 'ACTIVE'}
+          {isAiThinking ? `${opponentLabel} THINKING...` : isAiPaused ? `${opponentLabel} PAUSED` : 'ACTIVE'}
         </span>
       </div>
 
@@ -102,7 +108,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
         </button>
       </div>
 
-      {/* Interactive Controls (AI & Undo) */}
+      {/* Interactive Controls (Undo / Redo & Media Gadget) */}
       <div className="border border-black dark:border-white p-2 space-y-2">
         <div className="font-bold text-[11px] uppercase tracking-wider border-b border-black dark:border-white pb-1">
           &gt; DEBUG CONTROLS
@@ -117,6 +123,17 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
             Undo Move
           </button>
 
+          {onRedo && (
+            <button
+              onClick={onRedo}
+              disabled={!canRedo || isAiThinking}
+              className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-40"
+              id="debug-redo-btn"
+            >
+              Redo Move
+            </button>
+          )}
+
           {mode === 'ava' && (
             <>
               <button
@@ -124,7 +141,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                 className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                 id="debug-pause-btn"
               >
-                {isAiPaused ? 'Resume AI' : 'Pause AI'}
+                {isAiPaused ? `Resume ${opponentLabel}` : `Pause ${opponentLabel}`}
               </button>
 
               <button
@@ -133,13 +150,13 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                 className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-40"
                 id="debug-step-btn"
               >
-                Step AI
+                Step {opponentLabel}
               </button>
             </>
           )}
 
           <div className="flex items-center gap-1 ml-auto text-[11px]">
-            <span className="font-bold">AI SPEED:</span>
+            <span className="font-bold">SPEED:</span>
             {[100, 400, 800].map((s) => (
               <button
                 key={s}
@@ -219,7 +236,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           {/* AI Strategy Recommendation */}
           <div className="border border-black dark:border-white p-2 space-y-1">
             <div className="font-bold border-b border-black dark:border-white pb-1">
-              AI STRATEGY ENGINE RECOMMENDATION
+              {opponentLabel} STRATEGY ENGINE RECOMMENDATION
             </div>
             <div>
               Next Best Action for {currentTurn}:{' '}
@@ -240,13 +257,15 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="border border-black dark:border-white p-2 space-y-2">
             <div className="font-bold border-b border-black dark:border-white pb-1 flex justify-between items-center">
               <span>MOVE HISTORY STACK ({history.length} MOVES)</span>
-              <div className="flex gap-2 text-[10px]">
+              <div className="flex gap-2 text-[10px] items-center">
+                {copied && <span className="text-[10px] opacity-80">Copied!</span>}
                 <button
                   onClick={() => {
                     const logData = JSON.stringify(
                       {
                         timestamp: new Date().toISOString(),
                         mode,
+                        variant,
                         gamesPlayed,
                         winner,
                         finalBoard: boardToString(board),
@@ -264,7 +283,8 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                       2
                     );
                     navigator.clipboard.writeText(logData);
-                    alert('Game log JSON copied to clipboard!');
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
                   }}
                   className="px-2 py-0.5 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                   id="copy-log-btn"
@@ -277,6 +297,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                       {
                         timestamp: new Date().toISOString(),
                         mode,
+                        variant,
                         gamesPlayed,
                         winner,
                         finalBoard: boardToString(board),

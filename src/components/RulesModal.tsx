@@ -55,10 +55,10 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
           {activeTab === 'rules' ? (
             <div className="space-y-3">
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>TTT Mode:</strong> Standard Tic-Tac-Toe symbols (X vs O). Win by completing a line of 3 matching symbols (XXX or OOO).
+                <strong>TTT (TIC TOC TOE) Mode:</strong> Standard Tic-Tac-Toe symbols (X vs O). Win by completing a line of 3 matching symbols (XXX or OOO).
               </div>
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>OXO Mode:</strong> Either player can place 'X' or 'O' into any empty cell! Win by forming an 'O-X-O' line on your move.
+                <strong>XOX (XOX OXO XOX) Mode:</strong> Either player can place 'X' or 'O' into any empty cell! Win by forming an 'O-X-O' line on your move.
               </div>
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
                 <strong>Line Removal Rule:</strong> At any turn, a player can remove 3 symbols in a line (row, column, or diagonal that is fully filled).

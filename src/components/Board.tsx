@@ -1,5 +1,5 @@
 import React from 'react';
-import { BoardState, Line, Player, GameVariant } from '../types';
+import { BoardState, Line, Player, GameVariant, GameMode } from '../types';
 
 interface BoardProps {
   board: BoardState;
@@ -9,12 +9,25 @@ interface BoardProps {
   filledLines: Line[];
   isBoardFull: boolean;
   variant?: GameVariant;
+  mode?: GameMode;
   activePlacementSymbol?: Player;
   onSelectPlacementSymbol?: (symbol: Player) => void;
   onInvertPlacementSymbol?: () => void;
   onCellClick: (index: number) => void;
   onClearLine: (line: Line) => void;
   disabled: boolean;
+  // Media controls & history
+  isAiPaused?: boolean;
+  onToggleAiPause?: () => void;
+  onStepAi?: () => void;
+  aiSpeed?: number;
+  onSpeedFaster?: () => void;
+  onSpeedSlower?: () => void;
+  onUndo?: () => void;
+  canUndo?: boolean;
+  onRedo?: () => void;
+  canRedo?: boolean;
+  isAiThinking?: boolean;
 }
 
 export const Board: React.FC<BoardProps> = ({
@@ -25,12 +38,24 @@ export const Board: React.FC<BoardProps> = ({
   filledLines,
   isBoardFull,
   variant = 'TTT',
+  mode = 'pva_x',
   activePlacementSymbol = 'X',
   onSelectPlacementSymbol,
   onInvertPlacementSymbol,
   onCellClick,
   onClearLine,
   disabled,
+  isAiPaused = false,
+  onToggleAiPause,
+  onStepAi,
+  aiSpeed = 400,
+  onSpeedFaster,
+  onSpeedSlower,
+  onUndo,
+  canUndo = false,
+  onRedo,
+  canRedo = false,
+  isAiThinking = false,
 }) => {
   const isWinningCell = (index: number) => {
     return winningLine ? winningLine.indices.includes(index) : false;
@@ -154,6 +179,95 @@ export const Board: React.FC<BoardProps> = ({
               </button>
             );
           })}
+        </div>
+      </div>
+
+      {/* Retro Interactive Controls Toolbar: Media Player & Undo / Redo */}
+      <div className="w-full mt-3 flex flex-col gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-1.5 border-2 border-black dark:border-white p-1.5 text-xs font-bold bg-white dark:bg-black">
+          {/* Left: Undo / Redo buttons */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={onUndo}
+              disabled={!canUndo || (mode === 'ava' && !isAiPaused && !winner)}
+              className="px-2 py-1 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 transition-none"
+              id="game-undo-btn"
+              title="Undo Move (<)"
+            >
+              &lt; Undo
+            </button>
+            <button
+              onClick={onRedo}
+              disabled={!canRedo || (mode === 'ava' && !isAiPaused && !winner)}
+              className="px-2 py-1 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-30 transition-none"
+              id="game-redo-btn"
+              title="Redo Move (>)"
+            >
+              Redo &gt;
+            </button>
+          </div>
+
+          {/* Right: In AvA mode, media player controls (Play/Pause || / >, Step >|, Speed v / ^) */}
+          {mode === 'ava' && (
+            <div className="flex items-center gap-1 ml-auto">
+              {/* Play / Stop (Pause) Gadget */}
+              <button
+                onClick={onToggleAiPause}
+                disabled={winner !== null}
+                className={`px-2.5 py-1 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-black disabled:opacity-30 transition-none ${
+                  isAiPaused ? 'bg-black/10 dark:bg-white/10' : ''
+                }`}
+                id="media-play-pause-btn"
+                title={isAiPaused ? 'Play / Resume (>)' : 'Stop / Pause (||)'}
+              >
+                {isAiPaused ? '>' : '||'}
+              </button>
+
+              {/* Step 1 Move (available when paused/halted) */}
+              {isAiPaused && !winner && (
+                <button
+                  onClick={onStepAi}
+                  disabled={isAiThinking}
+                  className="px-2 py-1 border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-black disabled:opacity-30 transition-none"
+                  id="media-step-btn"
+                  title="Step 1 Move Forward (>|)"
+                >
+                  &gt;|
+                </button>
+              )}
+
+              {/* Speed Controls: v (slower) / ^ (faster) */}
+              <div className="flex items-center border border-black dark:border-white">
+                <button
+                  onClick={onSpeedSlower}
+                  className="px-1.5 py-0.5 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-black"
+                  id="speed-down-btn"
+                  title="Slower (v)"
+                >
+                  v
+                </button>
+                <span className="px-1.5 py-0.5 text-[10px] font-mono tracking-tight min-w-[42px] text-center border-x border-black dark:border-white select-none">
+                  {aiSpeed}ms
+                </span>
+                <button
+                  onClick={onSpeedFaster}
+                  className="px-1.5 py-0.5 hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black font-black"
+                  id="speed-up-btn"
+                  title="Faster (^)"
+                >
+                  ^
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Git Version Label */}
+        <div
+          className="text-center text-[10px] font-bold tracking-widest uppercase opacity-75 select-none pt-1"
+          id="version-label"
+        >
+          VERSION 3.0.0
         </div>
       </div>
     </div>

@@ -22,13 +22,15 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleDebug,
   onReset,
 }) => {
+  const opponentLabel = variant === 'TTT' ? 'TTT' : 'XOX';
+
   return (
     <header className="w-full max-w-xl mx-auto mb-6 font-mono text-black dark:text-white">
       {/* Title & Top Action Bar */}
       <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-black dark:border-white pb-3 gap-3">
         <div className="flex flex-col items-center sm:items-start">
           <h1 className="text-2xl font-bold tracking-widest uppercase">
-            {variant === 'OXO' ? 'XOX' : 'TIC TOC TOE'}
+            {variant === 'OXO' ? 'XOX OXO XOX' : 'TIC TOC TOE'}
           </h1>
         </div>
 
@@ -94,9 +96,9 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs font-bold">
         {[
           { id: 'pvp', label: '2-Player' },
-          { id: 'pva_x', label: 'Play X vs AI' },
-          { id: 'pva_o', label: 'Play O vs AI' },
-          { id: 'ava', label: 'AI vs AI' },
+          { id: 'pva_x', label: `Play X vs ${opponentLabel}` },
+          { id: 'pva_o', label: `Play O vs ${opponentLabel}` },
+          { id: 'ava', label: `${opponentLabel} vs ${opponentLabel}` },
         ].map((item) => (
           <button
             key={item.id}
