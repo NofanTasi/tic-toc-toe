@@ -1,4 +1,4 @@
-# TIC TOC TOE & XOX OXO XOX (Version 3.0.0)
+# TIC TOC TOE & XOX OXO XOX (Version 4.0.0)
 
 A retro black & white combinatorial game engine, state-space analyzer, and graph visualizer featuring classic **TIC TOC TOE (TTT)** and generalized **XOX OXO XOX (OXO)** with line-clearing mechanics.
 

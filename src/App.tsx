@@ -3,6 +3,7 @@ import {
   BoardState,
   GameMode,
   GameVariant,
+  Language,
   Line,
   MoveHistoryItem,
   Player,
@@ -24,6 +25,10 @@ export default function App() {
   const [currentTurn, setCurrentTurn] = useState<Player>('X');
   const [mode, setMode] = useState<GameMode>('pva_x');
   const [variant, setVariant] = useState<GameVariant>('TTT');
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('tictactoe_language');
+    return (saved as Language) || 'EN';
+  });
   const [activePlacementSymbol, setActivePlacementSymbol] = useState<Player>('X');
   const [history, setHistory] = useState<MoveHistoryItem[]>([]);
   const [redoStack, setRedoStack] = useState<MoveHistoryItem[]>([]);
@@ -37,6 +42,11 @@ export default function App() {
     const saved = localStorage.getItem('tictactoe_games_played');
     return saved ? parseInt(saved, 10) || 0 : 0;
   });
+
+  const handleSelectLanguage = (newLang: Language) => {
+    setLanguage(newLang);
+    localStorage.setItem('tictactoe_language', newLang);
+  };
 
   const recordGameStart = useCallback(() => {
     setGameTracked((alreadyTracked) => {
@@ -295,6 +305,7 @@ export default function App() {
         <Header
           mode={mode}
           variant={variant}
+          language={language}
           isDebug={isDebug}
           onSelectMode={handleSelectMode}
           onSelectVariant={handleSelectVariant}
@@ -314,6 +325,8 @@ export default function App() {
             isBoardFull={boardIsFull}
             variant={variant}
             mode={mode}
+            language={language}
+            onSelectLanguage={handleSelectLanguage}
             activePlacementSymbol={activePlacementSymbol}
             onSelectPlacementSymbol={setActivePlacementSymbol}
             onInvertPlacementSymbol={handleInvertPlacementSymbol}
@@ -341,6 +354,7 @@ export default function App() {
             currentTurn={currentTurn}
             mode={mode}
             variant={variant}
+            language={language}
             history={history}
             winner={winner}
             filledLines={filledLines}
@@ -353,12 +367,14 @@ export default function App() {
             onStepAi={executeAiTurn}
             onUndo={handleUndo}
             canUndo={history.length > 0 && !isAiThinking}
+            onRedo={handleRedo}
+            canRedo={redoStack.length > 0 && !isAiThinking}
             isAiThinking={isAiThinking}
           />
         )}
 
         {/* Rules Modal */}
-        <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} />
+        <RulesModal isOpen={isRulesOpen} onClose={() => setIsRulesOpen(false)} language={language} />
       </div>
     </div>
   );

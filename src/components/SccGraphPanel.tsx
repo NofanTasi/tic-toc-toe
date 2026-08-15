@@ -1,10 +1,12 @@
 import React from 'react';
-import { BoardState, GameVariant } from '../types';
+import { BoardState, GameVariant, Language } from '../types';
 import { calculateSccMetrics } from '../utils/sccGraph';
+import { t } from '../i18n';
 
 interface SccGraphPanelProps {
   historyBoards: BoardState[];
   variant?: GameVariant;
+  language?: Language;
   isAiVsAi?: boolean;
   onFastOrbit?: () => void;
   aiSpeed?: number;
@@ -13,6 +15,7 @@ interface SccGraphPanelProps {
 export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
   historyBoards,
   variant = 'TTT',
+  language = 'EN',
 }) => {
   const activeVariant: GameVariant = (variant as GameVariant) || 'TTT';
   const metrics = calculateSccMetrics(historyBoards, activeVariant);
@@ -24,7 +27,7 @@ export const SccGraphPanel: React.FC<SccGraphPanelProps> = ({
       <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2">
         <div className="flex items-center gap-2">
           <span className="font-bold uppercase tracking-wider text-sm">
-            ∞ {variant === 'OXO' ? 'XOX' : 'TTT'} GAME GRAPH EXPLORER
+            ∞ {variant === 'OXO' ? 'XOX' : 'TTT'} {t(language, 'tab_graph_explorer')}
           </span>
           {cycleInfo.isCycle && (
             <span className="bg-black text-white dark:bg-white dark:text-black px-2 py-0.5 text-[10px] font-bold animate-pulse">

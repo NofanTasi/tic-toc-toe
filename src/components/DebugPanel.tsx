@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BoardState, GameMode, Line, MoveHistoryItem, Player, GameVariant } from '../types';
+import { BoardState, GameMode, Line, MoveHistoryItem, Player, GameVariant, Language } from '../types';
 import {
   boardToAbstractString,
   boardToString,
@@ -9,12 +9,14 @@ import {
   INITIAL_BOARD,
 } from '../utils/tictactoe';
 import { SccGraphPanel } from './SccGraphPanel';
+import { t } from '../i18n';
 
 interface DebugPanelProps {
   board: BoardState;
   currentTurn: Player;
   mode: GameMode;
   variant: GameVariant;
+  language?: Language;
   history: MoveHistoryItem[];
   winner: Player | null;
   filledLines: Line[];
@@ -37,6 +39,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
   currentTurn,
   mode,
   variant = 'TTT',
+  language = 'EN',
   history,
   winner,
   filledLines,
@@ -76,9 +79,13 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
     <div className="w-full max-w-xl mx-auto mt-6 border-2 border-black dark:border-white p-3 font-mono text-xs bg-white dark:bg-black text-black dark:text-white space-y-4 shadow-none">
       {/* Header */}
       <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2">
-        <span className="font-bold uppercase tracking-wider">DEBUG & GRAPH ENGINE</span>
+        <span className="font-bold uppercase tracking-wider">{t(language, 'debug_title')}</span>
         <span className="text-[10px] opacity-75">
-          {isAiThinking ? `${opponentLabel} THINKING...` : isAiPaused ? `${opponentLabel} PAUSED` : 'ACTIVE'}
+          {isAiThinking
+            ? `${opponentLabel} ${t(language, 'thinking')}`
+            : isAiPaused
+            ? `${opponentLabel} ${t(language, 'paused')}`
+            : t(language, 'active')}
         </span>
       </div>
 
@@ -93,7 +100,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           }`}
           id="tab-scc-btn"
         >
-          ∞ Game Graph Explorer
+          {t(language, 'tab_graph_explorer')}
         </button>
         <button
           onClick={() => setActiveTab('engine')}
@@ -104,14 +111,14 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           }`}
           id="tab-engine-btn"
         >
-          Engine Analytics
+          {t(language, 'tab_engine_analytics')}
         </button>
       </div>
 
       {/* Interactive Controls (Undo / Redo & Media Gadget) */}
       <div className="border border-black dark:border-white p-2 space-y-2">
         <div className="font-bold text-[11px] uppercase tracking-wider border-b border-black dark:border-white pb-1">
-          &gt; DEBUG CONTROLS
+          &gt; {t(language, 'debug_controls')}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <button
@@ -120,7 +127,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
             className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-40"
             id="debug-undo-btn"
           >
-            Undo Move
+            {t(language, 'undo')}
           </button>
 
           {onRedo && (
@@ -130,7 +137,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
               className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-40"
               id="debug-redo-btn"
             >
-              Redo Move
+              {t(language, 'redo')}
             </button>
           )}
 
@@ -141,7 +148,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                 className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                 id="debug-pause-btn"
               >
-                {isAiPaused ? `Resume ${opponentLabel}` : `Pause ${opponentLabel}`}
+                {isAiPaused ? t(language, 'resume', { opp: opponentLabel }) : t(language, 'pause', { opp: opponentLabel })}
               </button>
 
               <button
@@ -150,13 +157,13 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                 className="px-2 py-1 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black disabled:opacity-40"
                 id="debug-step-btn"
               >
-                Step {opponentLabel}
+                {t(language, 'step', { opp: opponentLabel })}
               </button>
             </>
           )}
 
           <div className="flex items-center gap-1 ml-auto text-[11px]">
-            <span className="font-bold">SPEED:</span>
+            <span className="font-bold">{t(language, 'speed_label')}</span>
             {[100, 400, 800].map((s) => (
               <button
                 key={s}
@@ -188,30 +195,30 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="border border-black dark:border-white p-2 space-y-1">
               <div className="font-bold border-b border-black dark:border-white pb-1">
-                BOARD STATE
+                {t(language, 'board_state')}
               </div>
-              <div>Games Played: <span className="font-bold">{gamesPlayed}</span></div>
+              <div>{t(language, 'games_played')} <span className="font-bold">{gamesPlayed}</span></div>
               <div>Turn: <span className="font-bold">{currentTurn}</span></div>
               <div>Mode: <span className="font-bold uppercase">{mode}</span></div>
-              <div>Pieces: X={countX} | O={countO} (Total {countX + countO}/9)</div>
-              <div>Full Board: {isBoardFull ? 'YES' : 'NO'}</div>
-              <div>Winner: {winner ? winner : 'NONE'}</div>
+              <div>{t(language, 'pieces')} X={countX} | O={countO} (Total {countX + countO}/9)</div>
+              <div>{t(language, 'full_board')} {isBoardFull ? t(language, 'yes') : t(language, 'no')}</div>
+              <div>{t(language, 'winner')} {winner ? winner : t(language, 'none')}</div>
             </div>
 
             <div className="border border-black dark:border-white p-2 space-y-1">
               <div className="font-bold border-b border-black dark:border-white pb-1">
-                REPRESENTATION
+                {t(language, 'representation')}
               </div>
               <div className="truncate">Raw Str: <span className="font-bold">{rawStr}</span></div>
               <div className="truncate">Abstract: <span className="font-bold">{abstractStr}</span></div>
-              <div>Filled Lines: {filledLines.length}</div>
+              <div>{t(language, 'filled_lines')} {filledLines.length}</div>
             </div>
           </div>
 
           {/* Canonical Symmetry Engine Analysis */}
           <div className="border border-black dark:border-white p-2 space-y-1.5">
             <div className="font-bold border-b border-black dark:border-white pb-1">
-              CANONICAL SYMMETRY ANALYSIS
+              {t(language, 'canonical_analysis')}
             </div>
             {canonicalMatch ? (
               <div>
@@ -221,7 +228,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                 <div>D4 Symmetry Transform: #{canonicalMatch.transformIndex}</div>
                 <div>Canonical Board: {canonicalMatch.canonicalBoard}</div>
                 <div>
-                  Safe Line Removals: {canonicalMatch.safeLineIds.join(', ') || 'None'}
+                  Safe Line Removals: {canonicalMatch.safeLineIds.join(', ') || t(language, 'none')}
                 </div>
               </div>
             ) : (
@@ -236,19 +243,19 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           {/* AI Strategy Recommendation */}
           <div className="border border-black dark:border-white p-2 space-y-1">
             <div className="font-bold border-b border-black dark:border-white pb-1">
-              {opponentLabel} STRATEGY ENGINE RECOMMENDATION
+              {t(language, 'strategy_recommendation', { opp: opponentLabel })}
             </div>
             <div>
-              Next Best Action for {currentTurn}:{' '}
+              {t(language, 'next_best_action')} {currentTurn}:{' '}
               <span className="font-bold uppercase">
                 {aiRecommendation.action === 'place'
-                  ? `PLACE @ Cell #${aiRecommendation.index}`
-                  : `CLEAR ${aiRecommendation.line?.name}`}
+                  ? `${t(language, 'place_at_cell')}${aiRecommendation.index}`
+                  : `${t(language, 'clear_line')} ${aiRecommendation.line?.name}`}
               </span>
             </div>
             {safeLines.length > 0 && (
               <div className="text-[11px] opacity-80">
-                Available Safe Removals: {safeLines.map((l) => l.name).join(' | ')}
+                {t(language, 'available_safe_removals')} {safeLines.map((l) => l.name).join(' | ')}
               </div>
             )}
           </div>
@@ -256,9 +263,9 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
           {/* Move History Stack & Export Log */}
           <div className="border border-black dark:border-white p-2 space-y-2">
             <div className="font-bold border-b border-black dark:border-white pb-1 flex justify-between items-center">
-              <span>MOVE HISTORY STACK ({history.length} MOVES)</span>
+              <span>{t(language, 'history_stack', { count: history.length })}</span>
               <div className="flex gap-2 text-[10px] items-center">
-                {copied && <span className="text-[10px] opacity-80">Copied!</span>}
+                {copied && <span className="text-[10px] opacity-80">{t(language, 'copied')}</span>}
                 <button
                   onClick={() => {
                     const logData = JSON.stringify(
@@ -289,7 +296,7 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                   className="px-2 py-0.5 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                   id="copy-log-btn"
                 >
-                  Copy Log
+                  {t(language, 'copy_log')}
                 </button>
                 <button
                   onClick={() => {
@@ -325,12 +332,12 @@ export const DebugPanel: React.FC<DebugPanelProps> = ({
                   className="px-2 py-0.5 border border-black dark:border-white font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
                   id="download-log-btn"
                 >
-                  Download Log
+                  {t(language, 'download_log')}
                 </button>
               </div>
             </div>
             {history.length === 0 ? (
-              <div className="opacity-60 italic">No moves recorded yet.</div>
+              <div className="opacity-60 italic">{t(language, 'no_moves')}</div>
             ) : (
               <div className="max-h-36 overflow-y-auto space-y-1 text-[11px] pr-1">
                 {history

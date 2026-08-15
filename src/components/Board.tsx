@@ -1,5 +1,6 @@
 import React from 'react';
-import { BoardState, Line, Player, GameVariant, GameMode } from '../types';
+import { BoardState, Line, Player, GameVariant, GameMode, Language } from '../types';
+import { t } from '../i18n';
 
 interface BoardProps {
   board: BoardState;
@@ -10,6 +11,8 @@ interface BoardProps {
   isBoardFull: boolean;
   variant?: GameVariant;
   mode?: GameMode;
+  language?: Language;
+  onSelectLanguage?: (lang: Language) => void;
   activePlacementSymbol?: Player;
   onSelectPlacementSymbol?: (symbol: Player) => void;
   onInvertPlacementSymbol?: () => void;
@@ -39,6 +42,8 @@ export const Board: React.FC<BoardProps> = ({
   isBoardFull,
   variant = 'TTT',
   mode = 'pva_x',
+  language = 'EN',
+  onSelectLanguage,
   activePlacementSymbol = 'X',
   onSelectPlacementSymbol,
   onInvertPlacementSymbol,
@@ -84,10 +89,14 @@ export const Board: React.FC<BoardProps> = ({
     <div className="flex flex-col items-center w-full max-w-sm mx-auto font-mono text-black dark:text-white">
       {/* Game Status Banner */}
       <div className="mb-4 text-center font-bold text-sm tracking-wider uppercase border-b-2 border-black dark:border-white pb-2 w-full flex items-center justify-between">
-        <span>{winner ? `WINNER: PLAYER ${winner}` : `TURN: PLAYER ${currentTurn}`}</span>
+        <span>
+          {winner
+            ? `${t(language, 'winner_player')} ${winner}`
+            : `${t(language, 'turn_player')} ${currentTurn}`}
+        </span>
         {showMarkGadget && (
           <div className="flex items-center gap-1 text-xs">
-            <span className="opacity-75">Mark:</span>
+            <span className="opacity-75">{t(language, 'mark')}</span>
             <button
               onClick={() => onSelectPlacementSymbol?.('X')}
               className={`px-1.5 py-0.5 border border-black dark:border-white font-bold ${
@@ -116,7 +125,7 @@ export const Board: React.FC<BoardProps> = ({
               id="symbol-invert-btn"
               title="Invert Active Mark Choice (X ⇄ O)"
             >
-              ⇄ Invert
+              {t(language, 'invert')}
             </button>
           </div>
         )}
@@ -147,11 +156,11 @@ export const Board: React.FC<BoardProps> = ({
 
             let cellTitle = '';
             if (isUnambiguousLineCell) {
-              cellTitle = `Click to clear ${matchingLines[0].name}`;
+              cellTitle = t(language, 'click_to_clear', { line: matchingLines[0].name });
             } else if (isAmbiguousLineCell) {
-              cellTitle = `Ambiguous intersection (${matchingLines.map((l) => l.name).join(', ')}) - click an underlined cell to choose line`;
+              cellTitle = t(language, 'ambiguous_intersection', { lines: matchingLines.map((l) => l.name).join(', ') });
             } else if (cell === null) {
-              cellTitle = 'Click to place mark';
+              cellTitle = t(language, 'click_to_place');
             }
 
             return (
@@ -194,7 +203,7 @@ export const Board: React.FC<BoardProps> = ({
               id="game-undo-btn"
               title="Undo Move (<)"
             >
-              &lt; Undo
+              {t(language, 'undo')}
             </button>
             <button
               onClick={onRedo}
@@ -203,7 +212,7 @@ export const Board: React.FC<BoardProps> = ({
               id="game-redo-btn"
               title="Redo Move (>)"
             >
-              Redo &gt;
+              {t(language, 'redo')}
             </button>
           </div>
 
@@ -262,12 +271,31 @@ export const Board: React.FC<BoardProps> = ({
           )}
         </div>
 
-        {/* Git Version Label */}
+        {/* Version & Language Gadget Bar */}
         <div
-          className="text-center text-[10px] font-bold tracking-widest uppercase opacity-75 select-none pt-1"
-          id="version-label"
+          className="flex items-center justify-between w-full pt-2 border-t border-black/20 dark:border-white/20 select-none text-[10px] font-bold tracking-widest uppercase opacity-85"
+          id="version-language-bar"
         >
-          VERSION 3.0.0
+          <span id="version-label">{t(language, 'version')}</span>
+
+          {/* Language Selector: EN | ES | NL | IT */}
+          <div className="flex items-center border border-black dark:border-white text-[10px] font-bold" id="language-selector">
+            {(['EN', 'ES', 'NL', 'IT'] as const).map((l) => (
+              <button
+                key={l}
+                onClick={() => onSelectLanguage?.(l)}
+                className={`px-1.5 py-0.5 transition-colors ${
+                  language === l
+                    ? 'bg-black text-white dark:bg-white dark:text-black font-black'
+                    : 'hover:bg-black/10 dark:hover:bg-white/10'
+                }`}
+                id={`lang-${l.toLowerCase()}-btn`}
+                title={`Language: ${l}`}
+              >
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </div>

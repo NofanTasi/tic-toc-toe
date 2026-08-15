@@ -1,9 +1,11 @@
 import React from 'react';
-import { GameMode, GameVariant } from '../types';
+import { GameMode, GameVariant, Language } from '../types';
+import { t } from '../i18n';
 
 interface HeaderProps {
   mode: GameMode;
   variant: GameVariant;
+  language: Language;
   isDebug: boolean;
   onSelectMode: (mode: GameMode) => void;
   onSelectVariant: (variant: GameVariant) => void;
@@ -15,6 +17,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   mode,
   variant,
+  language,
   isDebug,
   onSelectMode,
   onSelectVariant,
@@ -30,12 +33,12 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex flex-col sm:flex-row items-center justify-between border-b-2 border-black dark:border-white pb-3 gap-3">
         <div className="flex flex-col items-center sm:items-start">
           <h1 className="text-2xl font-bold tracking-widest uppercase">
-            {variant === 'OXO' ? 'XOX OXO XOX' : 'TIC TOC TOE'}
+            {variant === 'OXO' ? t(language, 'title_oxo') : t(language, 'title_ttt')}
           </h1>
         </div>
 
         {/* Game Variant Switch & Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           {/* TTT / XOX Toggle */}
           <div className="flex items-center border-2 border-black dark:border-white text-xs font-bold">
             <button
@@ -69,7 +72,7 @@ export const Header: React.FC<HeaderProps> = ({
             className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="rules-btn"
           >
-            Rules
+            {t(language, 'rules')}
           </button>
           <button
             onClick={onToggleDebug}
@@ -80,14 +83,14 @@ export const Header: React.FC<HeaderProps> = ({
             }`}
             id="debug-btn"
           >
-            Debug
+            {t(language, 'debug')}
           </button>
           <button
             onClick={onReset}
             className="px-2.5 py-1 border border-black dark:border-white text-xs font-bold hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
             id="reset-game-btn"
           >
-            Reset
+            {t(language, 'reset')}
           </button>
         </div>
       </div>
@@ -95,10 +98,10 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Mode Selector */}
       <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs font-bold">
         {[
-          { id: 'pvp', label: '2-Player' },
-          { id: 'pva_x', label: `Play X vs ${opponentLabel}` },
-          { id: 'pva_o', label: `Play O vs ${opponentLabel}` },
-          { id: 'ava', label: `${opponentLabel} vs ${opponentLabel}` },
+          { id: 'pvp', label: t(language, 'mode_pvp') },
+          { id: 'pva_x', label: t(language, 'mode_pva_x', { opp: opponentLabel }) },
+          { id: 'pva_o', label: t(language, 'mode_pva_o', { opp: opponentLabel }) },
+          { id: 'ava', label: t(language, 'mode_ava', { opp: opponentLabel }) },
         ].map((item) => (
           <button
             key={item.id}

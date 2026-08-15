@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
+import { Language } from '../types';
+import { t } from '../i18n';
 
 interface RulesModalProps {
   isOpen: boolean;
   onClose: () => void;
+  language?: Language;
 }
 
-export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
+export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose, language = 'EN' }) => {
   const [activeTab, setActiveTab] = useState<'rules' | 'scc'>('rules');
 
   if (!isOpen) return null;
@@ -16,7 +19,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
         {/* Header */}
         <div className="flex items-center justify-between border-b-2 border-black dark:border-white pb-2 mb-3">
           <h2 className="text-sm font-bold uppercase tracking-wider">
-            === GAME RULES & MATHEMATICS ===
+            {t(language, 'rules_modal_title')}
           </h2>
           <button
             onClick={onClose}
@@ -36,7 +39,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 : 'hover:bg-black/10 dark:hover:bg-white/10'
             }`}
           >
-            Extra Rules
+            {t(language, 'tab_rules')}
           </button>
           <button
             onClick={() => setActiveTab('scc')}
@@ -46,7 +49,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
                 : 'hover:bg-black/10 dark:hover:bg-white/10'
             }`}
           >
-            Graph Theory
+            {t(language, 'tab_graph')}
           </button>
         </div>
 
@@ -55,42 +58,42 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
           {activeTab === 'rules' ? (
             <div className="space-y-3">
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>TTT (TIC TOC TOE) Mode:</strong> Standard Tic-Tac-Toe symbols (X vs O). Win by completing a line of 3 matching symbols (XXX or OOO).
+                <strong>{t(language, 'rule_ttt_title')}</strong> {t(language, 'rule_ttt_desc')}
               </div>
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>XOX (XOX OXO XOX) Mode:</strong> Either player can place 'X' or 'O' into any empty cell! Win by forming an 'O-X-O' line on your move.
+                <strong>{t(language, 'rule_oxo_title')}</strong> {t(language, 'rule_oxo_desc')}
               </div>
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>Line Removal Rule:</strong> At any turn, a player can remove 3 symbols in a line (row, column, or diagonal that is fully filled).
+                <strong>{t(language, 'rule_clear_title')}</strong> {t(language, 'rule_clear_desc')}
               </div>
               <div className="border border-black dark:border-white p-2.5 leading-relaxed">
-                <strong>Full Board Dynamic:</strong> When all 9 cells are full, a player must clear a filled line to continue play into endless loops.
+                <strong>{t(language, 'rule_full_title')}</strong> {t(language, 'rule_full_desc')}
               </div>
             </div>
           ) : (
             <div className="space-y-3">
               <div className="border border-black dark:border-white p-3 leading-relaxed bg-black/5 dark:bg-white/5">
                 <div className="font-bold border-b border-black/30 dark:border-white/30 pb-1 mb-2">
-                  THE INFINITE RECURRENT GAME GRAPH
+                  {t(language, 'graph_infinite_title')}
                 </div>
                 <p className="mb-2">
-                  In classical games like Tic-Tac-Toe, the state space is a <strong>Directed Acyclic Graph (DAG)</strong> leading to terminal leaves.
+                  {t(language, 'graph_dag_desc')}
                 </p>
                 <p className="mb-2">
-                  In <strong>TTT Removal Variant</strong>, the state space reduces to a <strong>211-Node Strongly Connected Component</strong> under D4 symmetry and role swap (λ ≈ 2.8109).
+                  {t(language, 'graph_ttt_desc')}
                 </p>
                 <p>
-                  In <strong>OXO Removal Variant</strong>, freely placing X or O expands the symmetric canonical graph to <strong>1080 Interconnected Nodes</strong> (λ ≈ 3.414).
+                  {t(language, 'graph_oxo_desc')}
                 </p>
               </div>
 
               <div className="border border-black dark:border-white p-3 leading-relaxed space-y-1">
                 <div className="font-bold border-b border-black/30 dark:border-white/30 pb-1 mb-1">
-                  SPECTRAL TOPOLOGY MAP
+                  {t(language, 'graph_map_title')}
                 </div>
-                <p>• <strong>Spectral Radius (λ):</strong> The largest eigenvalue governing exponential path growth.</p>
-                <p>• <strong>Centrality Hubs:</strong> States with high eigenvector centrality offering maximum strategic choice flexibility.</p>
-                <p>• <strong>Sticky Reservoirs:</strong> States with high stationary probability where players spend most of their ergodic game time.</p>
+                <p>• <strong>{t(language, 'graph_spec_desc')}</strong></p>
+                <p>• <strong>{t(language, 'graph_cent_desc')}</strong></p>
+                <p>• <strong>{t(language, 'graph_stat_desc')}</strong></p>
               </div>
             </div>
           )}
@@ -102,7 +105,7 @@ export const RulesModal: React.FC<RulesModalProps> = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="px-4 py-1 border border-black dark:border-white font-bold text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black"
           >
-            Close
+            {t(language, 'close')}
           </button>
         </div>
       </div>

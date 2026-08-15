@@ -1,3 +1,4 @@
+export type Language = 'EN' | 'ES' | 'NL' | 'IT';
 export type Player = 'X' | 'O';
 export type CellState = Player | null;
 export type BoardState = CellState[];
